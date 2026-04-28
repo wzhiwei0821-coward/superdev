@@ -5,6 +5,12 @@
 
 $ErrorActionPreference = 'Stop'
 
+# 强制 UTF-8 输出，避免 cp437/cp936 控制台把中文显示为 ???
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+} catch { }
+
 $RepoUrl = if ($env:MPDEV_REPO) { $env:MPDEV_REPO } else { 'https://github.com/wzhiwei0821-coward/superdev.git' }
 $Version = if ($env:MPDEV_VERSION) { $env:MPDEV_VERSION } else { 'latest' }
 $Target  = if ($env:MPDEV_TARGET)  { $env:MPDEV_TARGET }  else { './.claude' }
