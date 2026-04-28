@@ -13,9 +13,13 @@
 curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.sh | bash
 ```
 
-**Windows PowerShell：**
+**Windows PowerShell**（强制 UTF-8 解码，避免 `???` 乱码）：
 ```powershell
-iwr -useb https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1 | iex
+$wc = New-Object Net.WebClient
+$wc.Encoding = [Text.Encoding]::UTF8
+$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1')
+if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
+iex $s
 ```
 
 然后 4 个命令完成首次跑通：
@@ -69,18 +73,34 @@ curl -fsSL .../install.sh | MPDEV_VERSION=1.0.0 bash
 
 ### 2. Windows PowerShell（原生）
 
+**推荐**（强制 UTF-8 解码避免乱码）：
+
 ```powershell
 # 安装
-iwr -useb https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1 | iex
+$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
+$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1')
+if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
+iex $s
 
 # 升级
-iwr -useb https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/update.ps1 | iex
+$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
+$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/update.ps1')
+if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
+iex $s
 
-# 指定版本
-$env:MPDEV_VERSION='1.0.0'; iwr -useb .../install.ps1 | iex
+# 指定版本（在 iex 之前 set env）
+$env:MPDEV_VERSION = '1.0.0'
+# ... 然后跑上面的安装命令
 ```
 
-> **PowerShell 注意**：用 `iwr`（`Invoke-WebRequest` 的别名）+ `| iex`，**不要**用 `curl -fsSL`（在 PowerShell 里 `curl` 是 `Invoke-WebRequest` 的别名，不接 Unix 风格参数）。如必须用 curl，请用 `curl.exe`。
+**简化版**（仅当 raw URL 返回头声明了 charset=utf-8 时不乱码 — 实测 GitHub raw 不一定声明，慎用）：
+```powershell
+iwr -useb https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1 | iex
+```
+
+> **为什么需要强制 UTF-8**：`raw.githubusercontent.com` 不一定在 Content-Type 声明 `charset=utf-8`，PS 5.1 的 `iwr` 缺省按 ISO-8859-1 解码字节流。脚本里的中文字符串 + UTF-8 BOM 都会被破坏 → 控制台显示为 `???`。`Net.WebClient` 配 `Encoding=UTF8` 强制按 UTF-8 解码。
+
+> **PowerShell 别名陷阱**：在 PowerShell 里 `curl` 是 `Invoke-WebRequest` 的别名，不接 Unix 风格参数。如必须用 curl，用 `curl.exe`。
 
 > **私有仓库**：GitHub 私有仓 raw URL 需要带 token —— `iwr` 加 `-Headers @{Authorization='token ghp_xxx'}`，或直接用 `git clone https://USER:TOKEN@github.com/...`。Public 仓不需要。
 

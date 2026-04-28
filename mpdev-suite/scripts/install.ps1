@@ -1,8 +1,15 @@
 ﻿# mpdev-suite installer (PowerShell native)
-# Usage:
-#   iwr -useb https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1 | iex
-#   $env:MPDEV_VERSION='1.0.0'; iwr -useb .../install.ps1 | iex
-#   $env:MPDEV_TARGET='./custom-claude'; iwr -useb .../install.ps1 | iex
+#
+# Usage (推荐 — 强制 UTF-8 解码避免 ??? 乱码):
+#   $wc=New-Object Net.WebClient; $wc.Encoding=[Text.Encoding]::UTF8
+#   $s=$wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1')
+#   if($s[0]-eq[char]0xFEFF){$s=$s.Substring(1)}; iex $s
+#
+# 简化版 (仅当 raw URL 返回头含 charset=utf-8 时可用):
+#   iwr -useb .../scripts/install.ps1 | iex
+#
+# 环境变量覆盖:
+#   $env:MPDEV_VERSION='1.0.0' | $env:MPDEV_TARGET='./custom-claude' | $env:MPDEV_SUBDIR=''
 
 $ErrorActionPreference = 'Stop'
 
