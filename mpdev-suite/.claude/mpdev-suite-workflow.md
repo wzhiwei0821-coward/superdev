@@ -19,7 +19,7 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 
 | 命令 | 一句话职责 | 典型时机 |
 |------|------------|---------|
-| `/mpdev-init` | 扫 CLAUDE.md + 模板 → 生成 11 个 agent | 阶段 0 完成后 / 换项目 |
+| `/mpdev-init` | 扫 CLAUDE.md + 模板 → 生成 12 个 agent（含条件触发的 dba + 项目类型自适应的 tester）| 阶段 0 完成后 / 换项目 |
 
 **阶段 2+ 日常开发与运维**：
 
@@ -40,7 +40,7 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
   /mpdev-contracts  ─────────────▶ robot-contracts/
         ↓
 阶段 1：框架初始化（一次性）
-  /mpdev-init ───────────────────▶ 扫模块 CLAUDE.md → 生成 11 个 agent
+  /mpdev-init ───────────────────▶ 扫模块 CLAUDE.md → 生成 12 个 agent
         ↓
 阶段 2+：日常开发循环
   ① /mpdev 描述需求 ──────▶ 跨模块代码 + 全套文档 ─┐
@@ -257,6 +257,127 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 
 ---
 
+## /mpdev-test — 测试套件入口
+
+**做什么**：mpdev 测试角色的**统一命令入口**。底层调用 `tester` agent（基于 `templates/tester.tmpl` + `test-flavors/{type}.md` 合成）。
+
+**与 /mpdev 主流程的关系**：日常开发**不用**手工跑这条 —— `/mpdev` 自动在 **Step 7 / 9 / 12** 调用 tester。本命令用于专项任务：单独生成计划、给已有代码补用例、跑回归、查/导/修缺陷、UAT、重新识别项目类型。
+
+### 7 个子命令
+
+| 子命令 | 用途 | tester 模式 |
+|--------|------|-----------|
+| `/mpdev-test plan [需求/run_id]` | 单独生成测试计划 | A |
+| `/mpdev-test cases <module> [关键词]` | 给已有模块补测试用例 | A |
+| `/mpdev-test run [scope]` | 执行测试（scope: `--module/--regression/--perf/--smoke`）| B |
+| `/mpdev-test report [run_id]` | 生成测试总结报告 | C |
+| `/mpdev-test bug <action>` | 缺陷管理（`add`/`list`/`close`/`export`/`reopen`）| 不调 agent |
+| `/mpdev-test uat [run_id]` | 生成 UAT 验收文档 | C（uat 模式）|
+| `/mpdev-test detect-flavor` | 重新识别项目类型，重生成 `agents/tester.md` | 不调 agent |
+
+### tester 三模式（A / B / C）
+
+tester 是一个 agent 三种工作模式，**自动**在 mpdev 不同 Step 调用：
+
+| 模式 | 调用时机 | 输入 | 产出 |
+|------|---------|------|------|
+| **A. test-architect** | `/mpdev` Step 7（contract 后、impl 前）| Blueprint + contracts | 测试计划 + 测试用例规格 |
+| **B. test-executor** | `/mpdev` Step 9（impl 后、review 前）| 实现代码 + 用例 | 自动化代码 + 测试日志 + 缺陷登记 |
+| **C. test-reporter** | `/mpdev` Step 12（acceptance 后）| 测试日志 + 缺陷状态 | 测试总结报告 + (可选)UAT |
+
+### 5 份 IEEE 829 标准文档
+
+每次 `/mpdev` 跑出来 `mpdev-runs/{run_id}/` 下含：
+
+| 文件 | 含义 | 产出模式 | 标准 |
+|------|------|---------|------|
+| `02.5-test-plan.md` | 测试计划（目标/范围/级别/技术/资源/风险/准入准出）| A | IEEE 829 §4.1 |
+| `02.7-test-cases.md` | 测试用例规格（用例 ID/设计技术/优先级/输入/期望）| A | IEEE 829 §4.2 |
+| `03.5-test-log.md` | 测试日志（执行情况/覆盖率/未执行原因）| B | IEEE 829 §4.6 |
+| `03.6-test-incidents.md` | 缺陷登记（BUG-ID/严重度/复现/状态）| B | IEEE 829 §4.7 |
+| `05.5-test-summary.md` | 测试总结报告（通过率/缺陷分布/准出建议）| C | IEEE 829 §4.8 |
+| `uat.md`（可选）| UAT 验收（业务场景/角色矩阵/签字栏）| C | 自定 |
+
+### 缺陷生命周期闭环（核心创新）
+
+`/mpdev-test bug` 与 `/mpdev-fix` 形成**测试 → 修复 → 回归**闭环：
+
+```
+test-executor 跑测试 → fail 用例 → 03.6-test-incidents.md (status=open)
+       ↓
+/mpdev-test bug list             # 看 open/reopen 缺陷
+/mpdev-test bug export           # 导出 markdown 清单到 test-exports/
+       ↓
+/mpdev-fix --batch @bugs.md      # 按模块分组并行修
+       ↓ 修复完成
+缺陷状态自动更新 → status=resolved（待回归）
+       ↓
+/mpdev-test run --regression {bug_ids}
+       ↓
+通过 → status=closed   |   不通过 → status=reopen
+```
+
+**状态机**：`open → in-progress → resolved → closed`；不通过回归 → `reopen`。**严重度**：P0/Critical（阻断主流程） / P1/High（核心异常有 workaround） / P2/Medium（边缘） / P3/Low（建议）。
+
+### 6 种黑盒测试设计技术（每条用例必标 1+ 种）
+
+| 技术 | 何时用 | 示例 |
+|------|--------|------|
+| **等价类划分** | 输入域分类 | 长度 0/1-20/21-50/>50 → 4 类 |
+| **边界值分析** | 找极值缺陷 | 长度=0、1、20、21、最大值±1 |
+| **决策表** | 多条件组合 | 是否 VIP × 金额 × 是否首单 → 8 组合 |
+| **状态转换** | 状态机驱动业务 | task: pending → running → done → archived |
+| **场景法** | 业务流端到端 | 登录→下单→支付→收货 |
+| **错误推测** | 经验直觉 | 空字符串/特殊字符/超长/并发 |
+
+强制约束：**P0 用例 100% 自动化**；P1 ≥ 80%；P2/P3 可手工。
+
+### 项目类型 flavor 系统
+
+`tester.tmpl` + `test-flavors/{type}.md` **双层模板**：骨架（ISTQB 流程 + IEEE 829 文档结构）通用，方言（项目类型特定的风险点/自动化栈/CI/度量）按项目识别。
+
+7 种内置 flavor，由 `/mpdev-init` Step 9 或 `/mpdev-test detect-flavor` 自动识别：
+
+| Flavor | 识别信号 | 主要风险 | 自动化栈 |
+|--------|---------|---------|---------|
+| `http-api` | Spring Boot / FastAPI / Express / Gin | 边界/契约/并发/数据边界 | JUnit/pytest + RestAssured |
+| `web-frontend` | Vue/React/Angular（pnpm-workspace、vite）| 表单边界/路由权限/状态/A11y | Vitest + Cypress/Playwright + axe |
+| `microservices` | Spring Cloud / Dubbo / k8s manifests | 契约一致/熔断/分布式事务 | Spring Cloud Contract / Pact + Testcontainers |
+| `mobile-app` | iOS/Android/Flutter/RN | 设备碎片/版本兼容/沙箱支付 | XCTest/Espresso/Detox + Firebase Test Lab |
+| `algo-service` | YOLO/PaddleOCR/torch/onnx | 准确率回归/GPU/CPU 一致/输入鲁棒 | golden test set + DVC + pytest |
+| `data-pipeline` | Airflow/Spark/Kafka/dbt | **幂等**/数据完整/迟到事件/upstream 失败 | Great Expectations / Soda + chispa |
+| `robot-iot` | ROS / 嵌入式 / HIL | 仿真先行/控制环抖动 <5ms / 安全保护链 | rosbag 回归 + Gazebo + 故障注入 |
+
+每个 flavor 文件含 **9 个 BLOCK**：`PROJECT_TYPE_SCOPE` / `TEST_LEVELS` / `KEY_RISK_AREAS` / `AUTOMATION_STACK` / `CI_INTEGRATION` / `METRICS` / `NON_FUNCTIONAL` / `SAMPLE_CASES` / `DIALECT_CONSTRAINTS`。`/mpdev-init` Step 9 把它们注入 `tester.tmpl` 占位符 → 生成项目特化的 `agents/tester.md`。
+
+### 何时用 detect-flavor
+
+- 项目结构有重大变化（加了新模块、技术栈切换）
+- 第一次用 mpdev 跑某项目，init 自动识别错误，想手动改
+- 改进了某个 flavor 文件后，刷新现有项目的 tester.md
+
+`detect-flavor` 会在覆盖前备份旧 `agents/tester.md` 为 `.bak.{timestamp}`，可回退。
+
+### 示例
+
+```bash
+/mpdev-test plan 增加银行卡管理功能       # 独立测试计划
+/mpdev-test cases java payment           # 给 java 模块的 payment 模块补用例
+/mpdev-test run --module java            # 跑 java 模块所有测试
+/mpdev-test run --regression BUG-001,BUG-007  # 回归两个修复
+/mpdev-test bug list status=open severity=P0 # 查 open 的 P0 缺陷
+/mpdev-test bug export                   # 导出 → 喂给 /mpdev-fix --batch
+/mpdev-test report latest                # 给最近一次 /mpdev 跑生成总结
+/mpdev-test uat 2026-04-17_1530-night-patrol  # 给历史 run 生成 UAT
+/mpdev-test detect-flavor                # 重识别项目类型
+```
+
+**文档产出位置**：
+- 主流程跑出来的 5 份在 `mpdev-runs/{run_id}/`（与 architect/impl 等其他文档同目录）
+- 子命令独立产出在 `mpdev-runs/test-plans/` / `test-cases/` / `test-exports/`
+
+---
+
 ## /mpdev-env — 环境启停
 
 **子命令**：
@@ -339,15 +460,16 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 
 ```
 .claude/
-├── agents/                    11 个 agent 定义（/mpdev-init 按项目生成）
+├── agents/                    12 个 agent 定义（/mpdev-init 按项目生成）
 │   ├── architect.md
-│   ├── dba.md                 条件触发（DB 变更时）
+│   ├── dba.md                 条件触发（DB 变更时，骨架 + 4 个数据库方言）
 │   ├── contract-designer.md
 │   ├── java-impl.md
 │   ├── dispatch-impl.md
 │   ├── analytics-impl.md
 │   ├── vue-impl.md
 │   ├── algor-impl.md
+│   ├── tester.md              项目类型自适应（骨架 + 7 个 flavor），三阶段嵌入主流程
 │   ├── code-reviewer.md       通用（跨项目复用）
 │   ├── integration-checker.md 通用（跨项目复用）
 │   └── acceptance-reviewer.md 通用（跨项目复用）
@@ -444,7 +566,29 @@ done
 
 简短流程：复制现有 dialect 作骨架 → 改 yaml 元数据 → 改 9 个 BLOCK → 在 `mpdev-init.md` 的 Step 8.2 表格加识别行。
 
-### 4. Agent 文件 (`agents/*.md`) 重新生成
+### 4. 添加新测试 flavor（项目类型）
+
+如果项目类型不在内置 7 种里（http-api / web-frontend / microservices / mobile-app / algo-service / data-pipeline / robot-iot），需要新增 flavor。
+
+简短流程：
+
+1. **复制骨架**：`cp templates/test-flavors/http-api.md templates/test-flavors/{your-type}.md`
+2. **改 yaml 元数据**：`project_type` / `project_type_short` / `identification_signals` / `default_test_dir`
+3. **改 9 个 BLOCK**（每个 `<!-- BLOCK:X -->` 必须配对 `<!-- /BLOCK:X -->`，否则 init 注入失败）：
+   - `PROJECT_TYPE_SCOPE` — 适用项目范围
+   - `TEST_LEVELS` — 测试金字塔比例（单元/集成/E2E）
+   - `KEY_RISK_AREAS` — 高风险测试域
+   - `AUTOMATION_STACK` — 自动化栈（库/工具）
+   - `CI_INTEGRATION` — CI 配置示例
+   - `METRICS` — 度量阈值（覆盖率/通过率）
+   - `NON_FUNCTIONAL` — 非功能测试（性能/安全/兼容性）
+   - `SAMPLE_CASES` — 典型用例样板
+   - `DIALECT_CONSTRAINTS` — 项目类型特定约束
+4. **在 `mpdev-init.md` Step 9 加识别表行**：识别信号（项目根含什么文件/yaml 关键词）→ 推荐 flavor
+5. **校验**：`grep -c "<!-- /BLOCK:" templates/test-flavors/{your-type}.md` 必须等于 9
+6. **测试**：在样本项目跑 `/mpdev-test detect-flavor` 验证识别 + 注入正确
+
+### 5. Agent 文件 (`agents/*.md`) 重新生成
 
 `agents/*.md` 是 `/mpdev-init` 从 `templates/*.tmpl` + 各模块 CLAUDE.md 生成的产物。**何时重新生成**：
 
@@ -459,7 +603,7 @@ done
 # 它会询问是否覆盖已存在的 agents/*.md，一般选"全部覆盖"（除非你手动改过）
 ```
 
-### 5. 跨项目复用整套 `.claude/`
+### 6. 跨项目复用整套 `.claude/`
 
 把整个 `.claude/` 拷到新项目后，标准激活流程：
 
@@ -473,7 +617,7 @@ done
 
 无需手动改 commands / templates —— 这两个目录是框架级、跨项目通用。
 
-### 6. mpdev-runs/ 历史归档清理
+### 7. mpdev-runs/ 历史归档清理
 
 `mpdev-runs/` 会随时间膨胀。建议策略：
 
