@@ -1,0 +1,26 @@
+# 构建产物
+dist/
+*.tar.gz
+*.tar.gz.sha256
+
+# 临时备份
+.claude.bak.*
+*.new
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# 项目实例（不应该出现在套件仓中，但万一被误拷）
+.claude/agents/*.md
+!.claude/agents/.gitkeep
+.claude/mpdev-runs/devops-p1/
+.claude/mpdev-runs/*/[0-9]*/
+.claude/.mpdev-version
+.claude/settings.json
+.claude/settings.local.json
