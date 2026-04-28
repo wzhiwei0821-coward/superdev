@@ -24,7 +24,9 @@
 
 ### 1.1 解决什么问题
 
-本项目是一个 **6 模块** 的机器人巡检平台，一个典型需求（如"增加夜间巡检任务类型"）需要同时改动 Java 后端、Python 调度、Python 分析管道、Vue 前端、契约仓库，以及可能涉及算法服务。模块间通过 MQ 消息、HTTP API、WebSocket 三种协议交互，字段命名规范各不相同（Java camelCase / Python snake_case / MQ snake_case），历史遗留拼写不一致，手工开发极易出现跨模块字段不对齐、遗漏硬编码白名单等问题。
+跨模块项目（**多语言 + 多协议**）的协同开发痛点：模块间通过 MQ / HTTP / WebSocket / IPC 等多种协议交互，字段命名规范各不相同（Java camelCase / Python snake_case / MQ snake_case），跨语言重复定义同一概念，历史遗留拼写不一致，手工开发极易出现跨模块字段不对齐、遗漏硬编码白名单等问题。
+
+**以本仓库的 mpdevops 实例为例**：6 模块跨栈，一个典型需求（如"增加夜间巡检任务类型"）需要同时改动 Java 后端、Python 调度、Python 分析管道、Vue 前端、契约仓库，以及可能涉及算法服务。MPDev 把这种工作流抽象成可复用的多 agent 编排框架。
 
 ### 1.2 MPDev 是什么
 
@@ -34,7 +36,7 @@ MPDev（Multi-module Platform Development）是一套 **AI 多 Agent 协同开�
 
 | 理念 | 说明 |
 |------|------|
-| **契约先行** | 在写任何业务代码前，先更新 robot-contracts 仓库中的 Schema/OpenAPI/SQL/事件目录，所有 impl Agent 以契约为实现依据 |
+| **契约先行** | 在写任何业务代码前，先更新**契约仓库**中的 Schema/OpenAPI/SQL/事件目录，所有 impl Agent 以契约为实现依据（mpdevops 实例的契约仓库目录叫 `robot-contracts/`，其他项目可自定义）|
 | **代码驱动** | Architect 的每个结论必须有 grep/read 验证的代码证据，不接受"应该可以"式猜测 |
 | **三级质量门禁** | 自测 → 审查+联测 → 验收，每级关注不同维度，层层收窄缺陷 |
 | **失败可降级** | 关键路径（Architect/Contract）失败终止流程；非关键路径（Impl/Review）失败可跳过，汇总标注完成度 |
@@ -72,7 +74,7 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 | 属性 | 描述 |
 |------|------|
 | **职责** | 基于实际代码分析评估需求可行性，产出 Technical Blueprint 指导所有后续 Agent |
-| **工作方式** | 读 robot-contracts → grep 各模块关键字 → read 关键文件 → 分析跨模块数据流 → 评估风险 |
+| **工作方式** | 读契约仓库 → grep 各模块关键字 → read 关键文件 → 分析跨模块数据流 → 评估风险 |
 | **关键产出** | Technical Blueprint（5 段结构化文档） |
 | **特殊规则** | 每个结论必须有代码证据（file:line）；"无需改动"必须给出可验证的代码证据；新增枚举值时执行 5 步必查项（硬编码白名单 → switch/case → 条件列表 → 前端声音/UI → isExist 方法） |
 | **失败影响** | 🔴 **流程终止**（后续所有 Agent 无法工作） |
@@ -118,7 +120,7 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 
 | 属性 | 描述 |
 |------|------|
-| **职责** | 先于所有 Impl Agent 更新 robot-contracts，确保跨模块接口一致 |
+| **职责** | 先于所有 Impl Agent 更新契约仓库，确保跨模块接口一致 |
 | **工作方式** | 读 Blueprint §2+§4 → 更新 SQL/Schema/OpenAPI/事件目录 → 运行校验脚本 |
 | **关键产出** | contract_changes（Part 1 文件变更 + Part 2 结构化字段摘要） |
 | **特殊规则** | SQL 必须幂等（INSERT IGNORE）；MQ 新字段 optional+snake_case；所有输出字段必须存在，无变更输出 `[]` |
@@ -169,7 +171,9 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 
 ### 2.2 实现类（5 个）
 
-5 个 Impl Agent 负责各自模块的代码实现和单元自测，共享相同的工作范式：
+> **本节描述以 mpdevops 实例化的 5 个 impl agent 为例**（dispatch / analytics / java / vue / algor）。MPDev 套件层面的通用模板只有 3 个：`templates/impl-java.tmpl` / `impl-python.tmpl` / `impl-vue.tmpl`。`/mpdev-init` 扫描各项目 CLAUDE.md 后实例化为具体 agent —— 数量与名字随项目而定（mpdevops 是 5 个）。下方的 ROS / Flask / asyncio / 4 子应用 / PyTorch 等技术栈描述是 mpdevops 项目特有，不是 MPDev 框架要求。
+
+每个 impl agent 负责各自模块的代码实现和单元自测，共享相同的工作范式：
 
 **通用工作流：**
 ```
@@ -324,7 +328,7 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 | **Exploration (C)** | 探索/调查/理解代码，不改代码 | Architect(仅分析) → 多 Explore Agent 并行 → 汇总报告 | `/mpdev 追踪 GAME_OVER 在 5 个模块中的流转` |
 
 **模式判断规则：**
-- 提到"任务/巡检/告警/机器人控制" → B
+- 涉及 2+ 模块同时变更（新增字段/接口/事件/状态流转）→ B
 - 提到"前端/页面/UI"且不涉及新 API → 可能 A
 - 提到"查看/分析/追踪/调查/了解" → C
 - 不确定 → 默认 B
@@ -636,7 +640,7 @@ Java-Impl                                       │
 ```
 框架层（不变）             配置层（每项目一份）          生成层（由配置+模板生成）
   mpdev.md 编排器            各模块 CLAUDE.md              architect.md
-  code-reviewer.md           robot-contracts/CLAUDE.md     dba.md（DB 项目）
+  code-reviewer.md           契约仓库/CLAUDE.md            dba.md（DB 项目）
   integration-checker.md                                    contract-designer.md
   acceptance-reviewer.md                                    *-impl.md (N 个)
   templates/*.tmpl + dialects/
@@ -653,7 +657,7 @@ Java-Impl                                       │
 | 命令 | 职责 | 使用时机 | 底层 |
 |------|------|---------|------|
 | `/mpdev-understand` | 各模块代码深度理解 → 生成 CLAUDE.md | 新项目 / CLAUDE.md 缺失或过期 | 包装 `project-understanding` skill |
-| `/mpdev-contracts` | 多 CLAUDE.md 交叉比对 → 生成 robot-contracts/ | 跨模块项目首次建立共享接口 | 包装 `contract-extraction` skill |
+| `/mpdev-contracts` | 多 CLAUDE.md 交叉比对 → 生成契约仓库（默认目录名 `contracts/`，mpdevops 实例叫 `robot-contracts/`）| 跨模块项目首次建立共享接口 | 包装 `contract-extraction` skill |
 
 **阶段 1：框架初始化**
 
@@ -826,7 +830,7 @@ slug = 从用户需求原文首句取前 8 个词 → 去虚词 → kebab-case �
 .claude/
 ├── commands/                  9 个斜杠命令（按生命周期阶段）
 │   ├── mpdev-understand.md    阶段 0a: 项目理解 → 各模块 CLAUDE.md
-│   ├── mpdev-contracts.md     阶段 0b: 契约提取 → robot-contracts/
+│   ├── mpdev-contracts.md     阶段 0b: 契约提取 → 契约仓库（mpdevops 实例: robot-contracts/）
 │   ├── mpdev-init.md          阶段 1:  初始化器（含 dba/tester 识别）
 │   ├── mpdev.md               阶段 2:  跨模块开发主编排（含三阶段测试嵌入）
 │   ├── mpdev-fix.md           阶段 2:  轻量修复（单 bug / 批量清单）
