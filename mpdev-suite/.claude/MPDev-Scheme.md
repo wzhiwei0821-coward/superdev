@@ -159,11 +159,11 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 
 | 节 | 路径 | IEEE 829 模板 | 产出模式 |
 |---|------|--------------|---------|
-| 测试计划 | `02.5-test-plan.md` | Test Plan | A |
-| 测试用例规格 | `02.7-test-cases.md` | Test Case Specification | A |
-| 测试日志 | `03.5-test-log.md` | Test Log | B |
-| 缺陷登记 | `03.6-test-incidents.md` | Test Incident Report | B |
-| 测试总结 | `05.5-test-summary.md` | Test Summary Report | C |
+| 测试计划 | `06-test-plan.md` | Test Plan | A |
+| 测试用例规格 | `07-test-cases.md` | Test Case Specification | A |
+| 测试日志 | `09-test-log.md` | Test Log | B |
+| 缺陷登记 | `10-test-incidents.md` | Test Incident Report | B |
+| 测试总结 | `14-test-summary.md` | Test Summary Report | C |
 
 **与 /mpdev-fix 衔接**：tester 登记的缺陷可通过 `/mpdev-test bug export` 导出为 markdown 清单，直接喂给 `/mpdev-fix --batch` 形成"测试 → 修复 → 回归"闭环。
 
@@ -753,13 +753,13 @@ v1.2 引入**运行目录**机制：每次 `/mpdev` 运行产出一个独立的�
 .claude/mpdev-runs/
 ├── INDEX.md                       所有运行的索引（最新在顶）
 ├── {run_id}/                      一次 /mpdev 运行
-│   ├── 00-requirement.md          用户需求 + 模式判断
-│   ├── 01-blueprint.md            架构蓝图 + 用户确认记录
-│   ├── 02-contract-changes.md     契约变更清单 + 结构化摘要
-│   ├── 03-impl-{module}.md × N    各模块实现报告（自测结果重点在此）
-│   ├── 04-code-review.md          代码审查
-│   ├── 04-integration-check.md    L1-L3 集成校验
-│   ├── 05-acceptance.md           验收审查
+│   ├── 01-requirement.md          用户需求 + 模式判断
+│   ├── 03-blueprint.md            架构蓝图 + 用户确认记录
+│   ├── 05-contract-changes.md     契约变更清单 + 结构化摘要
+│   ├── 08-impl-{module}.md × N    各模块实现报告（自测结果重点在此）
+│   ├── 11-code-review.md          代码审查
+│   ├── 12-integration-check.md    L1-L3 集成校验
+│   ├── 13-acceptance.md           验收审查
 │   └── 99-summary.md              汇总（含全流程关联文档链接）
 └── fixes/                         /mpdev-fix 轻量修复记录
     └── {timestamp}-{module}-{slug}.md
@@ -816,9 +816,9 @@ slug = 从用户需求原文首句取前 8 个词 → 去虚词 → kebab-case �
 | 使用场景 | 阅读哪份文档 |
 |---------|------------|
 | 了解本次做了什么 | `99-summary.md`（全局视图） |
-| 查看某模块开发细节 | `03-impl-{module}.md` |
-| 对照验收结论 | `05-acceptance.md` |
-| 追溯契约变更 | `02-contract-changes.md` |
+| 查看某模块开发细节 | `08-impl-{module}.md` |
+| 对照验收结论 | `13-acceptance.md` |
+| 追溯契约变更 | `05-contract-changes.md` |
 | 复盘失败原因 | `99-summary.md` + 失败那个 Step 的文档 |
 | 审阅历史记录 | `INDEX.md` |
 

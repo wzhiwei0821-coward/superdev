@@ -27,17 +27,17 @@ $ARGUMENTS
 ```
 Step 0    初始化 run_id 和文档目录
 Step 1    输入归一化（文件/目录/粘贴文本 → 统一纯文本）
-Step 2    模式识别 (A/B/C)                       → 00-requirement.md
-Step 3    需求精细识别 + 用户确认                 → 00.5-requirement-breakdown.md
-Step 4    architect：技术评估 → Blueprint         → 01-blueprint.md
-Step 5    [条件] dba：数据层设计（DB 变更时触发）  → 01.5-dba-design.md
-Step 6    contract-designer：契约先行更新          → 02-contract-changes.md
-Step 7    [测试] tester (mode A)：测试计划 + 用例 → 02.5-test-plan.md + 02.7-test-cases.md
-Step 8    impl agents：并行实现                    → 03-impl-{module}.md × N
-Step 9    [测试] tester (mode B)：执行 + 缺陷登记 → 03.5-test-log.md + 03.6-test-incidents.md
-Step 10   code-reviewer + integration-checker     → 04-code-review.md + 04-integration-check.md
-Step 11   acceptance-reviewer：验收                → 05-acceptance.md
-Step 12   [测试] tester (mode C)：测试总结报告    → 05.5-test-summary.md
+Step 2    模式识别 (A/B/C)                       → 01-requirement.md
+Step 3    需求精细识别 + 用户确认                 → 02-breakdown.md
+Step 4    architect：技术评估 → Blueprint         → 03-blueprint.md
+Step 5    [条件] dba：数据层设计（DB 变更时触发）  → 04-dba-design.md
+Step 6    contract-designer：契约先行更新          → 05-contract-changes.md
+Step 7    [测试] tester (mode A)：测试计划 + 用例 → 06-test-plan.md + 07-test-cases.md
+Step 8    impl agents：并行实现                    → 08-impl-{module}.md × N
+Step 9    [测试] tester (mode B)：执行 + 缺陷登记 → 09-test-log.md + 10-test-incidents.md
+Step 10   code-reviewer + integration-checker     → 11-code-review.md + 12-integration-check.md
+Step 11   acceptance-reviewer：验收                → 13-acceptance.md
+Step 12   [测试] tester (mode C)：测试总结报告    → 14-test-summary.md
 Step 13   汇总报告                                  → 99-summary.md + 更新 INDEX.md
 ```
 
@@ -138,7 +138,7 @@ esac
 
 **归一化文本 `NORMALIZED_TEXT`** —— 后续 Step 2（模式识别）和 Step 3（精细识别）都以此为输入。
 
-**来源记录 `INPUT_SOURCES`** —— 文件/目录路径清单或 "粘贴文本"，写入 `00.5-requirement-breakdown.md` 的"输入来源"段。
+**来源记录 `INPUT_SOURCES`** —— 文件/目录路径清单或 "粘贴文本"，写入 `02-breakdown.md` 的"输入来源"段。
 
 **视觉资产清单 `VISUAL_ASSETS`** —— 结构化清单，格式：
 ```yaml
@@ -179,7 +179,7 @@ visual_assets:
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/00-requirement.md", ...)` — 内容见 §文档模板库.T0。
+`Write(".claude/mpdev-runs/{run_id}/01-requirement.md", ...)` — 内容见 §文档模板库.T0。
 
 ---
 
@@ -192,7 +192,7 @@ visual_assets:
 
 ### 3.1 输入文本
 
-直接使用 Step 1 产出的 `NORMALIZED_TEXT` 作为识别对象。来源信息 `INPUT_SOURCES` 用于填充 `00.5-requirement-breakdown.md` 的"输入来源"段。
+直接使用 Step 1 产出的 `NORMALIZED_TEXT` 作为识别对象。来源信息 `INPUT_SOURCES` 用于填充 `02-breakdown.md` 的"输入来源"段。
 
 ### 3.2 识别规则
 
@@ -328,7 +328,7 @@ design_tokens:
 
 ### 3.5 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/00.5-requirement-breakdown.md", ...)` — 内容见 §文档模板库.T0.5。
+`Write(".claude/mpdev-runs/{run_id}/02-breakdown.md", ...)` — 内容见 §文档模板库.T0.5。
 
 包含：
 - 输入来源（文件/目录路径清单 或 "粘贴文本"）
@@ -393,7 +393,7 @@ Agent(
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/01-blueprint.md", ...)` — 内容见 §文档模板库.T1。包含 Blueprint 全文 + 用户确认记录（是否调整、调整了什么）。
+`Write(".claude/mpdev-runs/{run_id}/03-blueprint.md", ...)` — 内容见 §文档模板库.T1。包含 Blueprint 全文 + 用户确认记录（是否调整、调整了什么）。
 
 如果 architect 返回"不可行" → 仍然写文档，status: failed，记录失败原因，整个流程终止。
 
@@ -428,10 +428,10 @@ Agent(
 <dba.md 内容>
 
 ## 输入
-- Architect Blueprint: {01-blueprint.md 全文}
+- Architect Blueprint: {03-blueprint.md 全文}
 - 触发信号: {命中的具体信号}
 - Step 3 NFR 摘要（重点关注**数据迁移 / 性能 / 兼容性 / 安全审计**四项，直接影响 DB 设计）：
-  {从 00.5-requirement-breakdown.md 抽取 NFR 表中这四类的"有"行}
+  {从 02-breakdown.md 抽取 NFR 表中这四类的"有"行}
 
 ## 任务
 按 dba.md 中 "设计思考顺序（7 步）" 完成数据库设计，严格按 "输出格式：DBA Design Doc" 的 9 节产出。
@@ -450,7 +450,7 @@ NFR 中的"数据迁移"决定回填策略；"性能"决定索引与分区；"�
 
 ### 5.4 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/01.5-dba-design.md", ...)` — DBA Design Doc 全文。
+`Write(".claude/mpdev-runs/{run_id}/04-dba-design.md", ...)` — DBA Design Doc 全文。
 
 ---
 
@@ -476,7 +476,7 @@ Agent(
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/02-contract-changes.md", ...)` — 内容见 §文档模板库.T2。包含 Part 1 文件清单 + Part 2 结构化摘要 + 契约仓库 commit/branch 信息（如有）。
+`Write(".claude/mpdev-runs/{run_id}/05-contract-changes.md", ...)` — 内容见 §文档模板库.T2。包含 Part 1 文件清单 + Part 2 结构化摘要 + 契约仓库 commit/branch 信息（如有）。
 
 模式 A 如果未触发 contract-designer，写一个"skipped, 无契约变更"的占位文档。
 
@@ -505,15 +505,15 @@ Agent(
 ## 任务: 模式 A（test-architect）
 
 ### 输入
-- Blueprint:  {.claude/mpdev-runs/{run_id}/01-blueprint.md 全文}
-- Contract:   {.claude/mpdev-runs/{run_id}/02-contract-changes.md 全文}
+- Blueprint:  {.claude/mpdev-runs/{run_id}/03-blueprint.md 全文}
+- Contract:   {.claude/mpdev-runs/{run_id}/05-contract-changes.md 全文}
 - 项目类型:    {tester.md frontmatter 中的 project_type}
-- DBA 设计（如有）: {01.5-dba-design.md}
+- DBA 设计（如有）: {04-dba-design.md}
 
 ### 任务
 按 ISTQB + IEEE 829 标准输出两份文档:
-1. 02.5-test-plan.md   — 测试计划（含范围、级别、资源、准入准出）
-2. 02.7-test-cases.md  — 测试用例规格（每条标注设计技术，至少用 3 种：等价类/边界值/决策表/状态机/场景/错误推测）
+1. 06-test-plan.md   — 测试计划（含范围、级别、资源、准入准出）
+2. 07-test-cases.md  — 测试用例规格（每条标注设计技术，至少用 3 种：等价类/边界值/决策表/状态机/场景/错误推测）
 
 P0 用例必须设计完整（含输入、期望、后置条件）；P1 用例可标注 todo。
   """
@@ -528,8 +528,8 @@ P0 用例必须设计完整（含输入、期望、后置条件）；P1 用例�
 ### 7.4 📄 文档输出
 
 ```
-Write(.claude/mpdev-runs/{run_id}/02.5-test-plan.md, ...)
-Write(.claude/mpdev-runs/{run_id}/02.7-test-cases.md, ...)
+Write(.claude/mpdev-runs/{run_id}/06-test-plan.md, ...)
+Write(.claude/mpdev-runs/{run_id}/07-test-cases.md, ...)
 ```
 
 ---
@@ -625,7 +625,7 @@ fail_with_report →
 
 ```
 对每个 impl agent:
-  Write(".claude/mpdev-runs/{run_id}/03-impl-{module}.md", ...)
+  Write(".claude/mpdev-runs/{run_id}/08-impl-{module}.md", ...)
   — 内容见 §文档模板库.T3
 ```
 
@@ -646,7 +646,7 @@ fail_with_report →
 
 ### 9.1 前置检查
 
-- `02.7-test-cases.md` 存在 → 继续
+- `07-test-cases.md` 存在 → 继续
 - 不存在（Step 7 跳过）→ 警告并询问：[基于代码现状自动设计简化用例 / 仅跑现有测试 / 跳过 Step 9]
 
 ### 9.2 调用 tester agent
@@ -661,15 +661,15 @@ Agent(
 ## 任务: 模式 B（test-executor）
 
 ### 输入
-- 测试用例: {02.7-test-cases.md 全文}
-- 各模块实现产出: {03-impl-{module}.md 列表 + 变更文件清单}
+- 测试用例: {07-test-cases.md 全文}
+- 各模块实现产出: {08-impl-{module}.md 列表 + 变更文件清单}
 
 ### 任务
 1. 为 P0 / P1 用例生成自动化测试代码（按 flavor AUTOMATION_STACK 选用工具）
    测试代码放到 test/ / tests/ / src/test/，注释 TC-ID 便于追溯
 2. 执行测试套件（mvn test / pytest / npm test）
-3. 失败用例 → 登记缺陷到 03.6-test-incidents.md，分配 BUG-ID（递增）
-4. 输出测试日志到 03.5-test-log.md（含覆盖率、缺陷数）
+3. 失败用例 → 登记缺陷到 10-test-incidents.md，分配 BUG-ID（递增）
+4. 输出测试日志到 09-test-log.md（含覆盖率、缺陷数）
   """
 )
 ```
@@ -683,8 +683,8 @@ Agent(
 ### 9.4 📄 文档输出
 
 ```
-Write(.claude/mpdev-runs/{run_id}/03.5-test-log.md, ...)
-Write(.claude/mpdev-runs/{run_id}/03.6-test-incidents.md, ...) (如有缺陷)
+Write(.claude/mpdev-runs/{run_id}/09-test-log.md, ...)
+Write(.claude/mpdev-runs/{run_id}/10-test-incidents.md, ...) (如有缺陷)
 新增/修改的测试代码文件（在各模块的 test/ 目录下）
 ```
 
@@ -742,8 +742,8 @@ comment_only         | fail                | → 修复循环(integration)，com
 Step 10 产出两份独立文档：
 
 ```
-Write(".claude/mpdev-runs/{run_id}/04-code-review.md", ...)       — 见 §文档模板库.T4a
-Write(".claude/mpdev-runs/{run_id}/04-integration-check.md", ...) — 见 §文档模板库.T4b
+Write(".claude/mpdev-runs/{run_id}/11-code-review.md", ...)       — 见 §文档模板库.T4a
+Write(".claude/mpdev-runs/{run_id}/12-integration-check.md", ...) — 见 §文档模板库.T4b
 ```
 
 每份文档包含：
@@ -823,7 +823,7 @@ reject             → 呈现缺失项 → 轻度: 分派补充 / 重度: 回 ar
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev-runs/{run_id}/05-acceptance.md", ...)` — 内容见 §文档模板库.T5。
+`Write(".claude/mpdev-runs/{run_id}/13-acceptance.md", ...)` — 内容见 §文档模板库.T5。
 
 包含：
 - 需求覆盖清单（逐项 ☑/☐ + 证据位置）
@@ -850,14 +850,14 @@ Agent(
 ## 任务: 模式 C（test-reporter）
 
 ### 输入
-- 测试日志:   {03.5-test-log.md}
-- 缺陷登记:   {03.6-test-incidents.md}
-- 代码审查:   {04-code-review.md}
-- 集成校验:   {04-integration-check.md}
-- 验收审查:   {05-acceptance.md}
+- 测试日志:   {09-test-log.md}
+- 缺陷登记:   {10-test-incidents.md}
+- 代码审查:   {11-code-review.md}
+- 集成校验:   {12-integration-check.md}
+- 验收审查:   {13-acceptance.md}
 
 ### 任务
-按 IEEE 829 测试总结报告模板输出 05.5-test-summary.md，必含:
+按 IEEE 829 测试总结报告模板输出 14-test-summary.md，必含:
 - 总用例数 / 通过率 / 阻塞数
 - 缺陷分布（按模块、严重度）
 - 覆盖率（行 / 分支 / 需求）
@@ -875,7 +875,7 @@ Agent(
 ### 12.3 📄 文档输出
 
 ```
-Write(.claude/mpdev-runs/{run_id}/05.5-test-summary.md, ...)
+Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
 ```
 
 ---
@@ -920,12 +920,12 @@ Write(.claude/mpdev-runs/{run_id}/05.5-test-summary.md, ...)
 包含：
 - 运行结论 + 各阶段时间线 + 总耗时
 - 变更统计（与会话内汇总一致）
-- **测试结论**：用例总数 / 通过率 / 缺陷分布 / 行覆盖率 / 准出建议（来自 `05.5-test-summary.md`）
+- **测试结论**：用例总数 / 通过率 / 缺陷分布 / 行覆盖率 / 准出建议（来自 `14-test-summary.md`）
 - 各阶段文档的相对链接（便于跳转阅读）：
-  - 设计阶段：`00-requirement.md` / `01-blueprint.md` / `01.5-dba-design.md`（如有）/ `02-contract-changes.md`
-  - 测试阶段：`02.5-test-plan.md` / `02.7-test-cases.md` / `03.5-test-log.md` / `03.6-test-incidents.md`（如有）/ `05.5-test-summary.md`
-  - 实现阶段：`03-impl-{module}.md` × N
-  - 质量阶段：`04-code-review.md` / `04-integration-check.md` / `05-acceptance.md`
+  - 设计阶段：`01-requirement.md` / `03-blueprint.md` / `04-dba-design.md`（如有）/ `05-contract-changes.md`
+  - 测试阶段：`06-test-plan.md` / `07-test-cases.md` / `09-test-log.md` / `10-test-incidents.md`（如有）/ `14-test-summary.md`
+  - 实现阶段：`08-impl-{module}.md` × N
+  - 质量阶段：`11-code-review.md` / `12-integration-check.md` / `13-acceptance.md`
 - 未修复项清单（含测试发现的未修复缺陷 BUG-ID）
 
 **B. 更新 INDEX.md**
@@ -949,8 +949,8 @@ Write(.claude/mpdev-runs/{run_id}/05.5-test-summary.md, ...)
 ### 📄 文档输出（模式 C）
 
 写三份：
-- `00-requirement.md`（标明模式 C）
-- `00.5-requirement-breakdown.md`（轻量版：只列"探索目标"和"关注点"，**无 AC / NFR / 涉及模块**；status 标 `success`，在文档头 `phase: requirement-breakdown-lite`）
+- `01-requirement.md`（标明模式 C）
+- `02-breakdown.md`（轻量版：只列"探索目标"和"关注点"，**无 AC / NFR / 涉及模块**；status 标 `success`，在文档头 `phase: requirement-breakdown-lite`）
 - `99-summary.md`（内容即调查报告：探索目标 + 发现 + 证据引用 + 结论/建议）
 
 ---
@@ -959,7 +959,7 @@ Write(.claude/mpdev-runs/{run_id}/05.5-test-summary.md, ...)
 
 所有 Write 调用按以下模板渲染 markdown。模板中的 `{变量}` 由编排器在运行时替换。所有文档开头统一带 YAML frontmatter（见 Step 0.3）。
 
-### T0 — 需求文档 (`00-requirement.md`)
+### T0 — 需求文档 (`01-requirement.md`)
 
 ```markdown
 ---
@@ -991,7 +991,7 @@ generated_at: {timestamp}
 | ... | ... | ... | ... |
 ```
 
-### T0.5 — 需求精细识别 (`00.5-requirement-breakdown.md`)
+### T0.5 — 需求精细识别 (`02-breakdown.md`)
 
 ```markdown
 ---
@@ -1114,7 +1114,7 @@ design_tokens:
   - {列出用户在确认环节要求的最终改动}
 ```
 
-### T1 — 架构蓝图 (`01-blueprint.md`)
+### T1 — 架构蓝图 (`03-blueprint.md`)
 
 ```markdown
 ---
@@ -1175,7 +1175,7 @@ generated_at: {timestamp}
 - 调整项：{列出用户要求的调整点}
 ```
 
-### T2 — 契约变更 (`02-contract-changes.md`)
+### T2 — 契约变更 (`05-contract-changes.md`)
 
 ```markdown
 ---
@@ -1221,7 +1221,7 @@ api_changes:
 - 验证脚本：{是否通过 schemas 校验}
 ```
 
-### T3 — 模块实现报告 (`03-impl-{module}.md`)
+### T3 — 模块实现报告 (`08-impl-{module}.md`)
 
 **这是用户最关心的文档——开发自测结果就在这里。**
 
@@ -1280,7 +1280,7 @@ variable_usage_check: {...}  # Vue 才有
 {从 Blueprint §5 复制的 checklist，逐项勾选是否完成}
 ```
 
-### T4a — 代码审查报告 (`04-code-review.md`)
+### T4a — 代码审查报告 (`11-code-review.md`)
 
 ```markdown
 ---
@@ -1316,7 +1316,7 @@ Blueprint 遵循度：{high / medium / low}
 - **Round 2**：剩余 {N-M} 个 → 修复 K 个，剩 {N-M-K} 个残留 warn（已呈现给用户）
 ```
 
-### T4b — 集成校验报告 (`04-integration-check.md`)
+### T4b — 集成校验报告 (`12-integration-check.md`)
 
 ```markdown
 ---
@@ -1344,7 +1344,7 @@ generated_at: {timestamp}
 - Vue: `npm run build` → ...
 ```
 
-### T5 — 验收审查 (`05-acceptance.md`)
+### T5 — 验收审查 (`13-acceptance.md`)
 
 ```markdown
 ---
@@ -1423,18 +1423,18 @@ generated_at: {timestamp}
 | ... | ... | ... | ... | ... |
 
 ## 关联文档
-- [需求](./00-requirement.md)
-- [需求精细识别](./00.5-requirement-breakdown.md)
-- [架构蓝图](./01-blueprint.md)
-- [契约变更](./02-contract-changes.md)
-- [Java 实现](./03-impl-java.md)
-- [Dispatch 实现](./03-impl-dispatch.md)
-- [Analytics 实现](./03-impl-analytics.md)
-- [Vue 实现](./03-impl-vue.md)
-- [算法实现](./03-impl-algor.md)
-- [代码审查](./04-code-review.md)
-- [集成校验](./04-integration-check.md)
-- [验收审查](./05-acceptance.md)
+- [需求](./01-requirement.md)
+- [需求精细识别](./02-breakdown.md)
+- [架构蓝图](./03-blueprint.md)
+- [契约变更](./05-contract-changes.md)
+- [Java 实现](./08-impl-java.md)
+- [Dispatch 实现](./08-impl-dispatch.md)
+- [Analytics 实现](./08-impl-analytics.md)
+- [Vue 实现](./08-impl-vue.md)
+- [算法实现](./08-impl-algor.md)
+- [代码审查](./11-code-review.md)
+- [集成校验](./12-integration-check.md)
+- [验收审查](./13-acceptance.md)
 
 ## 未解决项
 {残留的 warn / conditional 条件 / 建议手动处理的项}

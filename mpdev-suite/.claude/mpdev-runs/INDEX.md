@@ -16,19 +16,19 @@
 .claude/mpdev-runs/
 ├── INDEX.md                       本文件
 ├── {run_id}/                      /mpdev 运行
-│   ├── 00-requirement.md          用户需求
-│   ├── 01-blueprint.md            架构蓝图
-│   ├── 01.5-dba-design.md         DBA 设计（仅 DB 变更时产出）
-│   ├── 02-contract-changes.md     契约变更
-│   ├── 02.5-test-plan.md          测试计划（tester mode A，IEEE 829）
-│   ├── 02.7-test-cases.md         测试用例规格（tester mode A，IEEE 829）
-│   ├── 03-impl-{module}.md        各模块实现报告
-│   ├── 03.5-test-log.md           测试日志（tester mode B，IEEE 829）
-│   ├── 03.6-test-incidents.md     缺陷登记（tester mode B，IEEE 829）
-│   ├── 04-code-review.md          代码审查
-│   ├── 04-integration-check.md    集成校验
-│   ├── 05-acceptance.md           验收审查
-│   ├── 05.5-test-summary.md       测试总结报告（tester mode C，IEEE 829）
+│   ├── 01-requirement.md          用户需求
+│   ├── 03-blueprint.md            架构蓝图
+│   ├── 04-dba-design.md         DBA 设计（仅 DB 变更时产出）
+│   ├── 05-contract-changes.md     契约变更
+│   ├── 06-test-plan.md          测试计划（tester mode A，IEEE 829）
+│   ├── 07-test-cases.md         测试用例规格（tester mode A，IEEE 829）
+│   ├── 08-impl-{module}.md        各模块实现报告
+│   ├── 09-test-log.md           测试日志（tester mode B，IEEE 829）
+│   ├── 10-test-incidents.md     缺陷登记（tester mode B，IEEE 829）
+│   ├── 11-code-review.md          代码审查
+│   ├── 12-integration-check.md    集成校验
+│   ├── 13-acceptance.md           验收审查
+│   ├── 14-test-summary.md       测试总结报告（tester mode C，IEEE 829）
 │   └── 99-summary.md              汇总
 ├── fixes/                         /mpdev-fix 轻量修复
 │   ├── {timestamp}-{module}-{slug}.md              单 bug 模式

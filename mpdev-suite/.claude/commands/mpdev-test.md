@@ -63,7 +63,7 @@ $ARGUMENTS
 
 ```
 1. 解析输入:
-   - 数字/run_id 格式 → 读 mpdev-runs/{run_id}/01-blueprint.md 作为上下文
+   - 数字/run_id 格式 → 读 mpdev-runs/{run_id}/03-blueprint.md 作为上下文
    - 自由文本 → 视为需求描述
    - 空 → 提示用户输入需求或选 run_id
 
@@ -131,8 +131,8 @@ scope 选项：
    - Python: pytest {path} -m {marker}
    - Node: npm test -- --testPathPattern={pattern}
 
-4. 收集结果 → 03.5-test-log.md
-5. 失败用例 → 自动登记到 03.6-test-incidents.md（已存在则追加，不覆盖）
+4. 收集结果 → 09-test-log.md
+5. 失败用例 → 自动登记到 10-test-incidents.md（已存在则追加，不覆盖）
 
 6. 回归模式特殊处理（--regression）:
    - 通过 → bug 状态自动改为 closed
@@ -152,13 +152,13 @@ scope 选项：
    - 具体 ID → 直接用
 
 2. 校验数据齐全:
-   - 03.5-test-log.md 必须存在
-   - 03.6-test-incidents.md 可缺失（无缺陷场景）
+   - 09-test-log.md 必须存在
+   - 10-test-incidents.md 可缺失（无缺陷场景）
 
 3. 调 tester agent (mode C):
    prompt: "汇总以下数据生成测试总结报告..."
 
-4. 输出: mpdev-runs/{run_id}/05.5-test-summary.md
+4. 输出: mpdev-runs/{run_id}/14-test-summary.md
 
 5. 更新 INDEX.md:
    - 在"测试记录"表追加一行（含 run_id / 通过率 / 缺陷数 / 准出建议）
@@ -181,14 +181,14 @@ scope 选项：
 - 实际 vs 期望
 - 关联用例 TC-ID（可选）
 
-写入到当前 run_id 的 03.6-test-incidents.md，状态 = open
+写入到当前 run_id 的 10-test-incidents.md，状态 = open
 分配 BUG-ID（递增序号 + 全局唯一）
 ```
 
 ### 5.2 `bug list [filter]`
 
 ```
-读 mpdev-runs/*/03.6-test-incidents.md 所有缺陷
+读 mpdev-runs/*/10-test-incidents.md 所有缺陷
 按 filter 过滤展示:
   - status=open / in-progress / resolved / closed / reopen
   - severity=P0 / P1 / P2 / P3

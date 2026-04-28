@@ -291,11 +291,11 @@ tester 是一个 agent 三种工作模式，**自动**在 mpdev 不同 Step 调�
 
 | 文件 | 含义 | 产出模式 | 标准 |
 |------|------|---------|------|
-| `02.5-test-plan.md` | 测试计划（目标/范围/级别/技术/资源/风险/准入准出）| A | IEEE 829 §4.1 |
-| `02.7-test-cases.md` | 测试用例规格（用例 ID/设计技术/优先级/输入/期望）| A | IEEE 829 §4.2 |
-| `03.5-test-log.md` | 测试日志（执行情况/覆盖率/未执行原因）| B | IEEE 829 §4.6 |
-| `03.6-test-incidents.md` | 缺陷登记（BUG-ID/严重度/复现/状态）| B | IEEE 829 §4.7 |
-| `05.5-test-summary.md` | 测试总结报告（通过率/缺陷分布/准出建议）| C | IEEE 829 §4.8 |
+| `06-test-plan.md` | 测试计划（目标/范围/级别/技术/资源/风险/准入准出）| A | IEEE 829 §4.1 |
+| `07-test-cases.md` | 测试用例规格（用例 ID/设计技术/优先级/输入/期望）| A | IEEE 829 §4.2 |
+| `09-test-log.md` | 测试日志（执行情况/覆盖率/未执行原因）| B | IEEE 829 §4.6 |
+| `10-test-incidents.md` | 缺陷登记（BUG-ID/严重度/复现/状态）| B | IEEE 829 §4.7 |
+| `14-test-summary.md` | 测试总结报告（通过率/缺陷分布/准出建议）| C | IEEE 829 §4.8 |
 | `uat.md`（可选）| UAT 验收（业务场景/角色矩阵/签字栏）| C | 自定 |
 
 ### 缺陷生命周期闭环（核心创新）
@@ -303,7 +303,7 @@ tester 是一个 agent 三种工作模式，**自动**在 mpdev 不同 Step 调�
 `/mpdev-test bug` 与 `/mpdev-fix` 形成**测试 → 修复 → 回归**闭环：
 
 ```
-test-executor 跑测试 → fail 用例 → 03.6-test-incidents.md (status=open)
+test-executor 跑测试 → fail 用例 → 10-test-incidents.md (status=open)
        ↓
 /mpdev-test bug list             # 看 open/reopen 缺陷
 /mpdev-test bug export           # 导出 markdown 清单到 test-exports/

@@ -41,13 +41,13 @@ description: 测试工程师 — 基于契约/代码设计用例、执行测试�
 
 ```
 1. 测试规划与控制（Test Planning and Control）
-   → 02.5-test-plan.md（IEEE 829 测试计划）
+   → 06-test-plan.md（IEEE 829 测试计划）
 2. 测试分析与设计（Test Analysis and Design）
-   → 02.7-test-cases.md（IEEE 829 测试用例规格）
+   → 07-test-cases.md（IEEE 829 测试用例规格）
 3. 测试实现与执行（Test Implementation and Execution）
-   → 自动化测试代码 + 03.5-test-log.md（IEEE 829 测试日志）
+   → 自动化测试代码 + 09-test-log.md（IEEE 829 测试日志）
 4. 评估出口准则与报告（Evaluating Exit Criteria and Reporting）
-   → 03.6-test-incidents.md（缺陷登记） + 05.5-test-summary.md（总结）
+   → 10-test-incidents.md（缺陷登记） + 14-test-summary.md（总结）
 5. 测试结束活动（Test Closure Activities）
    → 经验教训写入 99-summary.md，回归用例集滚雪球
 ```
@@ -72,8 +72,8 @@ description: 测试工程师 — 基于契约/代码设计用例、执行测试�
 ### A.1 输入解析
 
 ```
-读 .claude/mpdev-runs/{run_id}/01-blueprint.md（架构蓝图）
-读 .claude/mpdev-runs/{run_id}/02-contract-changes.md（契约变更）
+读 .claude/mpdev-runs/{run_id}/03-blueprint.md（架构蓝图）
+读 .claude/mpdev-runs/{run_id}/05-contract-changes.md（契约变更）
 读 robot-contracts/openapi/*.yaml + schemas/*.json + sql/V*.sql
 ```
 
@@ -97,7 +97,7 @@ description: 测试工程师 — 基于契约/代码设计用例、执行测试�
 
 ### A.4 用例设计
 
-按上述 6 种技术派生用例，输出到 `02.7-test-cases.md`：
+按上述 6 种技术派生用例，输出到 `07-test-cases.md`：
 
 ```markdown
 | 用例ID | 模块 | 标题 | 设计技术 | 优先级 | 输入 | 期望输出 | 后置条件 |
@@ -107,7 +107,7 @@ description: 测试工程师 — 基于契约/代码设计用例、执行测试�
 
 ### A.5 测试计划（IEEE 829 模板）
 
-输出到 `02.5-test-plan.md`，必含章节：
+输出到 `06-test-plan.md`，必含章节：
 - 测试目标 / 范围（in-scope + out-of-scope）/ 测试级别 / 测试技术
 - 资源（人员 / 环境 / 工具）/ 进度 / 准入准出标准
 - 风险与应对 / 交付物清单
@@ -116,7 +116,7 @@ description: 测试工程师 — 基于契约/代码设计用例、执行测试�
 
 ### B.1 加载用例
 
-读 `02.7-test-cases.md`，按优先级（P0 → P3）排序执行。
+读 `07-test-cases.md`，按优先级（P0 → P3）排序执行。
 
 ### B.2 生成自动化代码
 
@@ -141,7 +141,7 @@ Bash 执行测试套件（mvn test / pytest / npm test）
 
 ### B.4 缺陷登记格式（IEEE 829 测试事件报告）
 
-写入 `03.6-test-incidents.md`：
+写入 `10-test-incidents.md`：
 
 ```markdown
 | 缺陷ID | 用例ID | 模块 | 严重度 | 优先级 | 标题 | 复现步骤 | 实际vs期望 | 状态 |
@@ -157,19 +157,19 @@ Bash 执行测试套件（mvn test / pytest / npm test）
 
 ### B.5 输出测试日志
 
-`03.5-test-log.md`：执行情况、覆盖率、缺陷数、未执行用例原因。
+`09-test-log.md`：执行情况、覆盖率、缺陷数、未执行用例原因。
 
 ## 模式 C：test-reporter（Step 12 调用）
 
 ### C.1 汇总数据
 
 ```
-读 03.5-test-log.md / 03.6-test-incidents.md / 04-code-review.md / 05-acceptance.md
+读 09-test-log.md / 10-test-incidents.md / 11-code-review.md / 13-acceptance.md
 ```
 
 ### C.2 输出测试总结报告（IEEE 829）
 
-`05.5-test-summary.md` 必含：
+`14-test-summary.md` 必含：
 - 总用例数 / 通过率 / 阻塞数
 - 缺陷分布（按模块、按严重度饼图描述）
 - 覆盖率（行 / 分支 / 需求）
@@ -207,7 +207,7 @@ Bash 执行测试套件（mvn test / pytest / npm test）
 # 与 /mpdev-fix 的衔接（缺陷生命周期闭环）
 
 ```
-test-executor 跑测试 → 发现 fail → 03.6-test-incidents.md 登记（status=open）
+test-executor 跑测试 → 发现 fail → 10-test-incidents.md 登记（status=open）
        ↓
 用户跑 /mpdev-test bug list → 选要修的 bug 集
        ↓
@@ -226,11 +226,11 @@ test-executor 跑测试 → 发现 fail → 03.6-test-incidents.md 登记（stat
 
 | 文档 | 路径 | 产出模式 |
 |------|------|---------|
-| 测试计划 | `mpdev-runs/{run_id}/02.5-test-plan.md` | A |
-| 测试用例规格 | `mpdev-runs/{run_id}/02.7-test-cases.md` | A |
-| 测试日志 | `mpdev-runs/{run_id}/03.5-test-log.md` | B |
-| 缺陷登记 | `mpdev-runs/{run_id}/03.6-test-incidents.md` | B |
-| 测试总结 | `mpdev-runs/{run_id}/05.5-test-summary.md` | C |
+| 测试计划 | `mpdev-runs/{run_id}/06-test-plan.md` | A |
+| 测试用例规格 | `mpdev-runs/{run_id}/07-test-cases.md` | A |
+| 测试日志 | `mpdev-runs/{run_id}/09-test-log.md` | B |
+| 缺陷登记 | `mpdev-runs/{run_id}/10-test-incidents.md` | B |
+| 测试总结 | `mpdev-runs/{run_id}/14-test-summary.md` | C |
 | UAT 验收 | `mpdev-runs/{run_id}/uat.md` | C（可选）|
 
 每份文档必须含 frontmatter：
