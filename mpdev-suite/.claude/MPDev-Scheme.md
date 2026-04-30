@@ -30,7 +30,7 @@
 
 ### 1.2 MPDev 是什么
 
-MPDev（Multi-module Platform Development）是一套 **AI 多 Agent 协同开发框架**。开发者用自然语言描述需求，系统自动编排 12 个 AI Agent（含条件触发的 DBA + 项目类型自适应的 Tester），以"契约先行 → 并行实现 → 三级质量门禁 + 三阶段测试嵌入"的流程完成跨模块开发。
+MPDev（Multi-module Platform Development）是一套 **AI 多 Agent 协同开发框架**。开发者用自然语言描述需求，系统自动编排 13 个 AI Agent（含条件触发的 DBA + 项目类型自适应的 Tester），以"契约先行 → 并行实现 → 三级质量门禁 + 三阶段测试嵌入"的流程完成跨模块开发。
 
 ### 1.3 核心理念
 
@@ -65,7 +65,7 @@ MPDev（Multi-module Platform Development）是一套 **AI 多 Agent 协同开�
 
 ## 2. 角色定义
 
-MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
+MPDev 共有 **13 个 AI Agent 角色**，分为 6 类：
 
 ### 2.1 架构类（3 个）
 
@@ -268,6 +268,22 @@ MPDev 共有 **12 个 AI Agent 角色**，分为 5 类：
 | **输出** | accept / conditional_accept / reject |
 | **特殊规则** | 以用户原始需求为唯一标准；自行 grep/read 代码验证，不依赖 Impl 报告；"隐式实现"（Architect 判定无需改动）必须独立验证；Blueprint §5 每条风险逐项核对 |
 | **不关心** | 代码风格、安全漏洞、跨模块一致性（已由其他 Agent 覆盖） |
+
+---
+
+### 2.6 文档类（1 个，v1.1.0 新增）
+
+#### Doc-Refresher — 项目文档增量维护者
+
+| 属性 | 描述 |
+|------|------|
+| **职责** | 把 impl 变更和契约新增条目机械同步到各模块 CLAUDE.md / 契约仓 CLAUDE.md 表总表 |
+| **触发** | `/mpdev` 主流程 Step 12.5（test-reporter 之后、Step 13 汇总之前；模式 C 跳过）|
+| **会做** | 追加表格行 / 列表项 / 文件路径条目（机械可推导）|
+| **不做** | 语义改写工作流程段；调整 confidence 字段；删除已有内容；修改 schemas/openapi/sql 契约定义；修改 EVENT_CATALOG.md / DATAFLOW.md |
+| **跳过策略** | 找不到目标章节 / 章节无表格锚点 / 已存在 → 落 TODO 到模块 `TODO.md`，前缀 `[doc-refresh YYYY-MM-DD run_id=...]` |
+| **输出** | `refresh_report` YAML（含 refreshed / skipped_with_todo / not_touched / errors / status）|
+| **失败容错** | 不阻塞 Step 13；99-summary.md 标 "文档未刷新" |
 
 ---
 
@@ -643,6 +659,7 @@ Java-Impl                                       │
   code-reviewer.md           契约仓库/CLAUDE.md            dba.md（DB 项目）
   integration-checker.md                                    contract-designer.md
   acceptance-reviewer.md                                    *-impl.md (N 个)
+  doc-refresher.md (v1.1.0)
   templates/*.tmpl + dialects/
 ```
 
@@ -870,7 +887,8 @@ slug = 从用户需求原文首句取前 8 个词 → 去虚词 → kebab-case �
 │   ├── algor-impl.md
 │   ├── code-reviewer.md       通用（跨项目复用）
 │   ├── integration-checker.md 通用（跨项目复用）
-│   └── acceptance-reviewer.md 通用（跨项目复用）
+│   ├── acceptance-reviewer.md 通用（跨项目复用）
+│   └── doc-refresher.md       通用（跨项目复用，v1.1.0 新增）
 ├── mpdev-runs/                运行记录（每次命令产出的文档）
 │   ├── INDEX.md               运行/修复/提交/测试 索引
 │   ├── {run_id}/              单次 /mpdev 运行（含 02.5/02.7/03.5/03.6/05.5 测试文档）

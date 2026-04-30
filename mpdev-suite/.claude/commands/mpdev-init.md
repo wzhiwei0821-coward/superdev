@@ -229,10 +229,11 @@ Glob("**/CLAUDE.md")
 
 ### Step 10：复制/保留通用 Agent
 
-以下 3 个 agent 直接保留或从模板复制（几乎完全通用）：
+以下 4 个 agent 直接保留或从模板复制（几乎完全通用）：
 - `.claude/agents/code-reviewer.md`
 - `.claude/agents/integration-checker.md`
 - `.claude/agents/acceptance-reviewer.md`
+- `.claude/agents/doc-refresher.md`（**v1.1.0 新增**，用于 `/mpdev` Step 12.5 文档增量刷新）
 
 如果这些文件已存在，保留不覆盖。
 如果不存在，从当前项目的已有版本复制（它们是通用的）。
@@ -265,6 +266,7 @@ Glob("**/CLAUDE.md")
 - .claude/agents/code-reviewer.md ← 通用（保留/复制）
 - .claude/agents/integration-checker.md ← 通用（保留/复制）
 - .claude/agents/acceptance-reviewer.md ← 通用（保留/复制）
+- .claude/agents/doc-refresher.md ← 通用（保留/复制；v1.1.0 新增）
 
 ### 建议:
 1. Review 生成的 agent 定义，确认技术栈和编码规范提取准确

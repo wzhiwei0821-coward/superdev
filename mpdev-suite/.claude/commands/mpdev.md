@@ -38,6 +38,7 @@ Step 9    [测试] tester (mode B)：执行 + 缺陷登记 → 09-test-log.md + 
 Step 10   code-reviewer + integration-checker     → 11-code-review.md + 12-integration-check.md
 Step 11   acceptance-reviewer：验收                → 13-acceptance.md
 Step 12   [测试] tester (mode C)：测试总结报告    → 14-test-summary.md
+Step 12.5 [文档] doc-refresher：CLAUDE.md 增量刷新 → 15-doc-refresh.md
 Step 13   汇总报告                                  → 99-summary.md + 更新 INDEX.md
 ```
 
@@ -880,6 +881,99 @@ Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
 
 ---
 
+## Step 12.5：文档增量刷新（doc-refresher）
+
+test-reporter 完成后、Step 13 汇总前调用 doc-refresher agent，把本次引入的"机械可推导"接口/字段/文件变更增量同步到各模块 CLAUDE.md 和 `robot-contracts/CLAUDE.md` 的表总表。**无暂停点、低风险（只追加）、失败不阻塞 Step 13**。
+
+### 12.5.1 触发判定
+
+任一命中 → 跳过 Step 12.5（直接进 Step 13）：
+
+- 模式 == C（探索，不改代码）
+- 所有 impl 状态都是 `verified_no_change` / `skipped` / `blocked`（说明本次没产生需要同步的变更）
+- `Glob("**/CLAUDE.md")` 排除 `.claude/ node_modules/ .git/ target/ dist/` 后返回空（项目还没跑过 `/mpdev-understand`）
+- `.claude/agents/doc-refresher.md` 不存在（v1.0.0 项目升级到 v1.1.0 但未重跑 `/mpdev-init`）→ 跳过并在 99-summary.md 提示"建议重跑 `/mpdev-init` 让 Step 10 落地 doc-refresher.md，下次 `/mpdev` 即可启用 Step 12.5 文档增量刷新"
+
+否则继续 12.5.2。
+
+### 12.5.2 聚合输入
+
+主编排器从已有产出聚合（不引入新读取，全部来自 `.claude/mpdev-runs/{run_id}/`）：
+
+```yaml
+involved_modules: [...]              # 来自 02-breakdown.md "涉及模块"
+
+impl_outputs:                        # 来自 08-impl-{module}.md × N
+  - module: java
+    status: pass
+    changed_files: [{path, type, lines_added}]   # 抓 "## 变更文件" 表
+    api_changes_summary: [...]                   # 抓 "## 产出供下游的摘要" yaml
+    mq_publish_changes: [...]
+    new_db_fields: [...]
+  ...
+
+contract_changes:                    # 来自 05-contract-changes.md
+  files: { sql:[...], schemas:[...], openapi:[...], events:[...] }
+  new_fields: [...]
+  new_enum_values: [...]
+  api_changes: [...]
+
+existing_claude_md_paths:            # Glob 一次取全部
+  - {module}/CLAUDE.md × N
+  - robot-contracts/CLAUDE.md       # 若存在则纳入
+
+run_id: {run_id}                     # 用于 TODO 行前缀
+```
+
+如果 `05-contract-changes.md` status 为 `skipped`（模式 A 简单需求未触发 contract-designer），`contract_changes` 各字段输出空列表。
+
+### 12.5.3 调用 doc-refresher agent
+
+```
+读取 .claude/agents/doc-refresher.md 完整内容
+
+Agent(
+  subagent_type="general-purpose",
+  description="文档增量刷新: {需求标题}",
+  prompt="""
+<doc-refresher.md 内容>
+
+## 输入
+{聚合后的 yaml，见 12.5.2}
+
+## 任务
+按 doc-refresher.md 中"工作步骤"完成增量刷新，严格按"输出格式"返回 refresh_report。
+  """
+)
+```
+
+### 12.5.4 处理产出
+
+| status | 行为 |
+|---|---|
+| `success` | 继续 Step 13；refresh_report 摘要塞进 99-summary.md "文档刷新" 段 |
+| `partial` | 同上；99-summary.md 中标注"X 个段落跳过+TODO，建议日后跑 `/mpdev-understand only={modules} force` 全量刷新" |
+| `failed` | 不阻塞 Step 13；99-summary.md 标 "文档未刷新（{原因}）"，warn 呈现给用户 |
+| `skipped` | 主编排器在触发判定阶段已拦截，本路径理论上不进入 |
+
+**用户不被打断** — 本步骤无暂停点。事后用户可：
+- 看 `15-doc-refresh.md` 详情
+- `git diff` 审查具体改动（若是 git 仓库）
+- `git checkout {file}` 撤回单文件
+- 发现 TODO 需要补 → `/mpdev-understand only={module} force` 全量刷新该模块
+
+### 12.5.5 📄 文档输出
+
+`Write(".claude/mpdev-runs/{run_id}/15-doc-refresh.md", ...)` — 内容见 §文档模板库.T7。
+
+包含：
+- 触发判定摘要
+- refresh_report 全文（已刷新 / 跳过+TODO / 未触碰 / 错误）
+- 每个被刷新文件的 git diff 摘要（用 `Bash("git diff -- {file}")` 抓；若非 git 仓库则在文档中标注"非 git 仓库，跳过 diff 抓取"）
+- 后续建议
+
+---
+
 ## Step 13：汇总报告
 
 ```markdown
@@ -907,6 +1001,11 @@ Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
 - 一致性: {X} 维度 ✅ / {Y} 维度 ⚠️ 轻微偏差 / {Z} 维度 ❌ 严重偏差
 - design_tokens 引用合规: {K}/{K}（code-reviewer 统计）
 
+### 文档刷新（Step 12.5）
+- ✅ 已刷新: {N} 个文件 / {M} 个段落
+- ⚠️ 跳过+TODO: {K} 个段落（需要语义改写，详见 15-doc-refresh.md）
+- 未触碰: DATAFLOW.md, EVENT_CATALOG.md（设计上不动）
+
 ### 未修复项（如有）
 {残留的 warn / conditional 条件 / 建议手动处理的项}
 ```
@@ -926,6 +1025,7 @@ Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
   - 测试阶段：`06-test-plan.md` / `07-test-cases.md` / `09-test-log.md` / `10-test-incidents.md`（如有）/ `14-test-summary.md`
   - 实现阶段：`08-impl-{module}.md` × N
   - 质量阶段：`11-code-review.md` / `12-integration-check.md` / `13-acceptance.md`
+  - 文档阶段：`15-doc-refresh.md`（如有）
 - 未修复项清单（含测试发现的未修复缺陷 BUG-ID）
 
 **B. 更新 INDEX.md**
@@ -941,7 +1041,7 @@ Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
 ## 模式 C 特殊流程
 
 探索模式不改代码：
-1. 不启动 contract-designer / impl / review / integration / acceptance
+1. 不启动 contract-designer / impl / review / integration / acceptance / doc-refresher
 2. architect 指明"仅分析，不输出实现蓝图"
 3. 可并行多个 Explore agent 调查不同模块
 4. 汇总为调查报告
@@ -1416,11 +1516,17 @@ generated_at: {timestamp}
 | 00:18 | Impl 完成 | ✅ 5/5 |
 | 00:20 | 审查+联测 | ✅ |
 | 00:23 | 验收（含视觉对比） | ✅ accept / ⚠️ 轻微视觉偏差列 TODO |
+| 00:25 | 文档增量刷新 | ✅ {N} 文件 / ⚠️ {K} 段落落 TODO |
 
 ## 变更统计
 | 模块 | 文件数 | 新增行 | 修改行 | 测试 |
 |------|--------|--------|--------|------|
 | ... | ... | ... | ... | ... |
+
+## 文档刷新（Step 12.5）
+- ✅ 已刷新: {N} 个文件 / {M} 个段落
+- ⚠️ 跳过+TODO: {K} 个段落
+- 详情: [15-doc-refresh.md](./15-doc-refresh.md)
 
 ## 关联文档
 - [需求](./01-requirement.md)
@@ -1435,6 +1541,7 @@ generated_at: {timestamp}
 - [代码审查](./11-code-review.md)
 - [集成校验](./12-integration-check.md)
 - [验收审查](./13-acceptance.md)
+- [文档刷新](./15-doc-refresh.md)（如有）
 
 ## 未解决项
 {残留的 warn / conditional 条件 / 建议手动处理的项}
@@ -1443,6 +1550,62 @@ generated_at: {timestamp}
 - {是否执行 /mpdev-check 验证契约漂移}
 - {是否执行 /mpdev-env restart 让改动生效}
 - {是否 git commit}
+- {如 15-doc-refresh.md 有 TODO 段落 → 建议跑 /mpdev-understand only={modules} force 全量刷新}
+```
+
+### T7 — 文档刷新报告 (`15-doc-refresh.md`)
+
+```markdown
+---
+run_id: {run_id}
+step: 7.5
+phase: doc-refresh
+status: {success / partial / failed / skipped}
+agent: doc-refresher
+generated_at: {timestamp}
+---
+
+# 文档增量刷新
+
+## 触发判定
+- 模式: {A / B}（C 跳过）
+- 涉及模块: {N} 个
+- 契约新增条目: sql {N} / schemas {N} / openapi {N} / events {N}
+- 是否 git 仓库: {true / false}
+
+## 已刷新
+| 文件 | 段落 | +行 | 摘要 |
+|------|------|----:|------|
+| java/CLAUDE.md | ## REST API | 1 | +POST /api/task/create |
+| java/CLAUDE.md | ## 数据模型 | 1 | +Task.task_type |
+| robot-contracts/CLAUDE.md | ## 表总表 - schemas | 1 | +alarm_data.silent |
+
+## 跳过 + TODO
+| 文件 | 目标段落 | 原因 | TODO 落点 |
+|------|---------|------|----------|
+| dispatch/CLAUDE.md | ## 工作流程 | 需要语义重写 | dispatch/TODO.md |
+
+原因取值：`section_not_found` / `section_format_unrecognized` / `already_present` / `edit_failed`
+
+## 未触碰（设计上不动）
+- `robot-contracts/flows/DATAFLOW.md`（需要 architect 视野，建议大改后跑 `/mpdev-contracts force` 重建）
+- `robot-contracts/events/EVENT_CATALOG.md`（contract-designer 已经维护）
+
+## 错误（如有）
+{致命错误列表，如 Read 文件失败导致整文件未处理}
+
+## Git Diff 摘要
+{若是 git 仓库，每个被刷新文件用 `Bash("git diff -- {file}")` 抓 diff，纯文本逐行列出，不嵌套代码块。例：}
+
+> `git diff -- java/CLAUDE.md`
+>   + `| POST | /api/task/create | 创建任务 | ... |`
+
+{若非 git 仓库：标注"非 git 仓库，跳过 diff 抓取"}
+
+## 后续建议
+- 漂移度高（跳过 + TODO 超过 5 项）→ 建议跑 `/mpdev-understand only={modules} force` 全量刷新
+- 文档刷新有误 → `git checkout {file}` 撤回单文件（需 git 仓库）
+- robot-contracts/CLAUDE.md 不存在但项目跨模块 → 建议跑 `/mpdev-contracts` 首次建立
 ```
 
 ---
@@ -1460,6 +1623,7 @@ generated_at: {timestamp}
 | code-reviewer | 🟡 跳过 review，标注"未审查" |
 | integration-checker | 🟡 跳过联测，标注"未验证" |
 | acceptance-reviewer | 🟡 跳过验收，标注"未验收" |
+| doc-refresher (Step 12.5) | 🟡 不阻塞 Step 13；99-summary.md 标注"文档未刷新（{原因}）"，建议手动跑 `/mpdev-understand` 补救 |
 
 ### 修复循环上限
 

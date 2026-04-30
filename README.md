@@ -1,6 +1,6 @@
 # mpdev-suite
 
-> **多模块 AI 协同开发框架** — 9 个 slash 命令 × 12 个 AI agent，覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"全生命周期。
+> **多模块 AI 协同开发框架** — 9 个 slash 命令 × 13 个 AI agent，覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"全生命周期。
 
 本仓库是 mpdev 套件的**分发源**。各项目通过 `install.sh` 一键拉取，独立运行不依赖本仓库。
 
@@ -26,7 +26,7 @@ iex $s
 ```
 /mpdev-understand          # 阶段 0a：生成各模块 CLAUDE.md
 /mpdev-contracts           # 阶段 0b：跨模块项目才需要
-/mpdev-init                # 阶段 1：生成 12 个 agent
+/mpdev-init                # 阶段 1：生成 13 个 agent
 /mpdev "需求描述"            # 阶段 2：日常开发
 ```
 
@@ -148,7 +148,7 @@ cd mpdev-suite-v1.0.0 ; bash ./install.sh   # 离线包附带的 install.sh 仍�
 └── .mpdev-version        当前安装版本号
 ```
 
-`agents/`（12 个 AI agent 定义）由 `/mpdev-init` 在项目内自动生成，**不在套件分发范围**。
+`agents/`（13 个 AI agent 定义）由 `/mpdev-init` 在项目内自动生成，**不在套件分发范围**。
 
 ---
 

@@ -4,7 +4,7 @@
 
 ## 什么是 MPDev 套件
 
-MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 AI agent**（含条件触发的 DBA + 项目类型自适应的 Tester），覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"的**全生命周期**。你只需用自然语言描述需求，系统自动编排。
+MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **13 个 AI agent**（含条件触发的 DBA + 项目类型自适应的 Tester + v1.1.0 新增的 doc-refresher），覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"的**全生命周期**。你只需用自然语言描述需求，系统自动编排。
 
 ## 九个命令一览
 
@@ -19,7 +19,7 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 
 | 命令 | 一句话职责 | 典型时机 |
 |------|------------|---------|
-| `/mpdev-init` | 扫 CLAUDE.md + 模板 → 生成 12 个 agent（含条件触发的 dba + 项目类型自适应的 tester）| 阶段 0 完成后 / 换项目 |
+| `/mpdev-init` | 扫 CLAUDE.md + 模板 → 生成 13 个 agent（含条件触发的 dba + 项目类型自适应的 tester）| 阶段 0 完成后 / 换项目 |
 
 **阶段 2+ 日常开发与运维**：
 
@@ -40,7 +40,7 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
   /mpdev-contracts  ─────────────▶ robot-contracts/
         ↓
 阶段 1：框架初始化（一次性）
-  /mpdev-init ───────────────────▶ 扫模块 CLAUDE.md → 生成 12 个 agent
+  /mpdev-init ───────────────────▶ 扫模块 CLAUDE.md → 生成 13 个 agent
         ↓
 阶段 2+：日常开发循环
   ① /mpdev 描述需求 ──────▶ 跨模块代码 + 全套文档 ─┐
@@ -93,11 +93,13 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 │   ↓                                                               │
 │ ⑫ Step 12: tester 测试总结报告+准出建议                            │
 │   ↓                                                               │
+│ ⑫.5 Step 12.5: doc-refresher 文档增量刷新（v1.1.0）              │
+│   ↓                                                               │
 │ ⑬ Step 13: 汇总报告                                                │
 │   ↓ ← 你决定 commit / 调整                                        │
 ```
 
-### 12 个 Agent 角色
+### 13 个 Agent 角色
 
 | 角色 | 职责 | 关键产出 |
 |------|------|---------|
@@ -113,6 +115,7 @@ MPDev 是通用的多模块开发套件：**9 个斜杠命令**驱动 **12 个 A
 | **integration-checker** | 三层联测 (契约一致/模拟联调/构建) | 联测报告 |
 | **acceptance-reviewer** | 五维需求验收 (覆盖/场景/交付/范围/风险) | 验收报告 |
 | **tester** 🧪 | （3 模式：架构师/执行者/报告者）ISTQB 流程 + IEEE 829 文档 + 缺陷生命周期；项目类型自适应（flavor）| 5 份测试文档（plan/cases/log/incidents/summary）+ 自动化代码 |
+| **doc-refresher** 📝 | （v1.1.0 新增）`/mpdev` Step 12.5 文档增量刷新；只追加机械可推导内容（API 表行 / MQ 字段 / 文件路径），不动语义段落；找不到目标章节 → 落 TODO | `15-doc-refresh.md` 刷新报告 |
 
 ### 三种模式
 
@@ -460,7 +463,7 @@ test-executor 跑测试 → fail 用例 → 10-test-incidents.md (status=open)
 
 ```
 .claude/
-├── agents/                    12 个 agent 定义（/mpdev-init 按项目生成）
+├── agents/                    13 个 agent 定义（/mpdev-init 按项目生成）
 │   ├── architect.md
 │   ├── dba.md                 条件触发（DB 变更时，骨架 + 4 个数据库方言）
 │   ├── contract-designer.md

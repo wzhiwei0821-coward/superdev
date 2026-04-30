@@ -1,6 +1,6 @@
 # MPDev 套件
 
-> 多模块 AI 协同开发框架。**9 个 slash 命令** 驱动 **12 个 AI agent**，覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"的全生命周期。
+> 多模块 AI 协同开发框架。**9 个 slash 命令** 驱动 **13 个 AI agent**，覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"的全生命周期。
 
 ## 30 秒读懂
 
@@ -16,7 +16,7 @@
 ```
 .claude/
 ├── commands/             9 个 slash 命令（按生命周期分阶段）
-├── agents/              12 个 AI agent（架构 / 实现 / 审查 / 验收 / 测试 5 类）
+├── agents/              13 个 AI agent（架构 / 实现 / 审查 / 验收 / 测试 5 类）
 ├── templates/            模板体系
 │   ├── *.tmpl           5 个基础 agent 模板
 │   ├── dba.tmpl + dialects/      DBA 双层（骨架 + 4 种数据库方言）
@@ -44,7 +44,7 @@
 |---|---|---|---|
 | **0a** | `/mpdev-understand` | 给各模块生成 CLAUDE.md（包装 project-understanding skill） | 新项目首次进入 |
 | **0b** | `/mpdev-contracts` | 多 CLAUDE.md 交叉比对生成 robot-contracts/ | 跨模块项目建立共享接口 |
-| **1** | `/mpdev-init` | 扫描 + 模板 → 生成 12 个 agent 定义 | 阶段 0 完成后 |
+| **1** | `/mpdev-init` | 扫描 + 模板 → 生成 13 个 agent 定义 | 阶段 0 完成后 |
 | **2** | `/mpdev` | 跨模块开发主编排（含 14 步全流程 + 三阶段测试嵌入） | 日常需求、新功能 |
 | **2** | `/mpdev-fix` | 单 bug / 批量清单（禅道 CSV / Markdown）修复 | 测试反馈 / 自测发现 bug |
 | **2** | `/mpdev-test` | 测试套件（plan / cases / run / report / uat / bug / detect-flavor） | 测试专项 / 缺陷管理 |
@@ -54,7 +54,7 @@
 
 ---
 
-## 12 个 AI Agent（分 5 类）
+## 13 个 AI Agent（分 6 类）
 
 | 类别 | Agent | 触发 |
 |---|---|---|
@@ -63,6 +63,7 @@
 | **审查类（2）** | code-reviewer / integration-checker | /mpdev Step 10 并行调用 |
 | **验收类（1）** | acceptance-reviewer | /mpdev Step 11 |
 | **测试类（1）** | tester 🧪（项目类型自适应）| /mpdev Step 7 / 9 / 12 三阶段嵌入 |
+| **文档类（1）** | doc-refresher（v1.1.0 新增）| /mpdev Step 12.5 文档增量刷新 |
 
 ---
 
@@ -110,9 +111,9 @@ rm -f .claude/mpdev-runs/test-cases/*
 /mpdev-init
 ```
 
-执行 12 个 Step：扫模块 → 读 CLAUDE.md → 识别语言 → 生成 5 个 impl agent + architect + contract-designer + **dba（条件）+ tester（条件）** + 复制 3 个通用 agent + 生成 mpdev.md 编排器 + 输出汇总。
+执行 12 个 Step：扫模块 → 读 CLAUDE.md → 识别语言 → 生成 5 个 impl agent + architect + contract-designer + **dba（条件）+ tester（条件）** + 复制 4 个通用 agent（含 v1.1.0 新增 doc-refresher）+ 生成 mpdev.md 编排器 + 输出汇总。
 
-产出：`.claude/agents/` 全套 12 个 agent 定义。
+产出：`.claude/agents/` 全套 13 个 agent 定义。
 
 ### 第 5 步：开始日常开发
 
@@ -276,7 +277,7 @@ cp ~/.claude/skills/project-understanding/references/*.md \
 /mpdev-contracts                     # robot-contracts/
 
 # 阶段 1 - 框架初始化（一次性）
-/mpdev-init                          # 生成 12 个 agent
+/mpdev-init                          # 生成 13 个 agent
 
 # 阶段 2 - 日常开发
 /mpdev "需求描述"                     # 跨模块开发主流程
