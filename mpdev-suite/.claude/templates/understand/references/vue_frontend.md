@@ -1,6 +1,6 @@
 # Vue 前端 — 分轮执行指令
 
-> 本文件由 SKILL.md 在检测到 Vue 项目时加载。按 Prompt 1-6 逐轮执行。
+> 本文件由 `/mpdev-understand` 在 Step 3 检测到 Vue 项目时加载。按 Prompt 1-6 逐轮执行。
 
 ---
 

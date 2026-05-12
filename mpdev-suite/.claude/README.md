@@ -15,13 +15,13 @@
 
 ```
 .claude/
-├── commands/             9 个 slash 命令（按生命周期分阶段）
+├── commands/             9 个 slash 命令（按生命周期分阶段，工作流内联，无外部 skill 依赖）
 ├── agents/              13 个 AI agent（架构 / 实现 / 审查 / 验收 / 测试 5 类）
 ├── templates/            模板体系
 │   ├── *.tmpl           5 个基础 agent 模板
 │   ├── dba.tmpl + dialects/      DBA 双层（骨架 + 4 种数据库方言）
 │   ├── tester.tmpl + test-flavors/   Tester 双层（骨架 + 7 种项目类型 flavor）
-│   └── understand/references/    project-understanding skill 的本地 fallback（6 个语言指南）
+│   └── understand/references/    6 个语言指南（被 /mpdev-understand 按技术栈加载）
 ├── mpdev-runs/           运行档案（每次命令产出的文档持久化在此）
 │   ├── INDEX.md          全局索引（运行 / 修复 / 提交 / 测试 4 张表）
 │   ├── {run_id}/         /mpdev 单次运行 14 步全套文档
@@ -42,7 +42,7 @@
 
 | 阶段 | 命令 | 一句话职责 | 典型时机 |
 |---|---|---|---|
-| **0a** | `/mpdev-understand` | 给各模块生成 CLAUDE.md（包装 project-understanding skill） | 新项目首次进入 |
+| **0a** | `/mpdev-understand` | 给各模块生成 CLAUDE.md（5 轮 + 0.5 范围确认 + 合成的完整工作流） | 新项目首次进入 |
 | **0b** | `/mpdev-contracts` | 多 CLAUDE.md 交叉比对生成 robot-contracts/ | 跨模块项目建立共享接口 |
 | **1** | `/mpdev-init` | 扫描 + 模板 → 生成 13 个 agent 定义 | 阶段 0 完成后 |
 | **2** | `/mpdev` | 跨模块开发主编排（含 14 步全流程 + 三阶段测试嵌入） | 日常需求、新功能 |
@@ -131,11 +131,11 @@ rm -f .claude/mpdev-runs/test-cases/*
 
 | 路径 | 文件数 | 说明 |
 |---|---:|---|
-| `commands/*.md` | 9 | 9 个 slash 命令 |
+| `commands/*.md` | 9 | 9 个 slash 命令（mpdev-understand / mpdev-contracts 工作流已内联，无外部 skill 依赖）|
 | `templates/*.tmpl` | 7 | architect / contract-designer / impl-java / impl-python / impl-vue / dba / tester |
 | `templates/dialects/*.md` | 5 | mysql / postgresql / dameng / kingbase + README |
 | `templates/test-flavors/*.md` | 7 | 7 种项目类型方言（http-api / web-frontend / microservices / mobile-app / algo-service / data-pipeline / robot-iot）|
-| `templates/understand/references/*.md` | 6 | project-understanding skill 的本地副本（不依赖 skill 安装）|
+| `templates/understand/references/*.md` | 6 | 6 个语言指南（被 /mpdev-understand 按技术栈加载，java/python×4/vue）|
 | `MPDev-Scheme.md` | 1 | 方案说明书（改 §0 本项目实例后复用）|
 | `mpdev-suite-workflow.md` | 1 | 使用手册 |
 | `README.md` | 1 | 本文件 |
@@ -193,14 +193,16 @@ echo "Done. mpdev-pack/.claude/ 共 $(find mpdev-pack -type f | wc -l) 个文件
 
 ## 维护提示
 
-### 同步外部 skill 副本
+### `/mpdev-understand` 与 `/mpdev-contracts` 工作流
 
-`templates/understand/references/` 是 `project-understanding` skill 的本地副本。skill 仓库更新后手工同步：
+两个命令的完整工作流已内联在对应的 slash command 文件中：
 
-```bash
-cp ~/.claude/skills/project-understanding/references/*.md \
-   .claude/templates/understand/references/
-```
+- [`commands/mpdev-understand.md`](commands/mpdev-understand.md) — 5 轮 + 范围确认 + 合成
+- [`commands/mpdev-contracts.md`](commands/mpdev-contracts.md) — 8 步交叉比对 + 两暂停点
+
+修改工作流直接编辑这两个文件即可，**不再依赖任何外部 skill**。
+
+`templates/understand/references/` 是 6 个语言指南，被 `/mpdev-understand` 在 Step 3 按技术栈检测后加载。新增语言支持需要在这里添 reference 文件 + 在 `mpdev-understand.md` Step 3 加检测规则。
 
 ### 添加新数据库方言
 
@@ -239,9 +241,9 @@ cp ~/.claude/skills/project-understanding/references/*.md \
 - DB 引擎不识别 → init 会弹询问，从 5 种里选
 - 项目类型不识别 → 兜底用 http-api flavor，可手工换：`/mpdev-test detect-flavor` 选
 
-### Q3: 同事拿到套件跑 `/mpdev-understand` 但不安装 project-understanding skill 也能用？
+### Q3: 同事拿到套件跑 `/mpdev-understand` / `/mpdev-contracts` 是否需要装外部 skill？
 
-**能**。套件已自包含 `templates/understand/references/`（6 份 references，2333 行），skill 不存在时自动 fallback 用本地副本。
+**不需要**。两个命令的完整工作流已内联在 `commands/mpdev-understand.md` 和 `commands/mpdev-contracts.md` 内（约 600 / 700 行），按技术栈加载的 references 在 `templates/understand/references/`（6 份，共 2333 行）。装套件即可，零外部依赖。
 
 ### Q4: `/mpdev-env` 在 Spring Cloud 项目（含 Nacos + Docker Compose）能跑吗？
 

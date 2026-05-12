@@ -529,47 +529,29 @@ test-executor 跑测试 → fail 用例 → 10-test-incidents.md (status=open)
 
 ## 维护手册
 
-本套件含若干**外部 mirror 内容**和**生成产物**，需要在特定事件下手工或半自动同步。
+本套件含若干**生成产物**，以及需要演进的工作流定义，需要在特定事件下手工或半自动维护。
 
-### 1. 同步 `understand/references/`（来自 project-understanding skill）
+### 1. `/mpdev-understand` 和 `/mpdev-contracts` 工作流
 
-`.claude/templates/understand/references/` 是 `~/.claude/skills/project-understanding/references/` 的本地副本，让 `/mpdev-understand` 不依赖 skill 是否安装。
+两个命令的完整工作流已直接写在 slash command 文件中：
 
-**何时同步**：
+- [`commands/mpdev-understand.md`](commands/mpdev-understand.md) — 5 轮分析 + 范围确认 + 合成（~600 行）
+- [`commands/mpdev-contracts.md`](commands/mpdev-contracts.md) — 8 步交叉比对 + 两暂停点（~700 行）
 
-- 上游 skill 仓库更新了 references（关注 anthropic-skills 仓库 commit）
-- 本地副本超过 3 个月未更新 → 跑一次 diff 检查
-- `/mpdev-understand` 运行时报"references 内容看起来过时"
+**改动方式**：直接编辑 slash command 文件。**无外部 skill 源**，套件即单一事实源。
 
-**同步命令**（一行搞定）：
+`templates/understand/references/` 是 6 份语言指南（java/python×4/vue），被 `/mpdev-understand` Step 3 按技术栈检测后加载：
 
-```bash
-cp ~/.claude/skills/project-understanding/references/*.md \
-   .claude/templates/understand/references/
-```
+- 改 reference 内容 → 直接编辑对应文件
+- 新增语言支持 → 加 reference 文件 + 在 `mpdev-understand.md` Step 3 加检测规则
 
-**校验 hash 一致**（可选）：
-
-```bash
-for f in .claude/templates/understand/references/*.md; do
-  src="$HOME/.claude/skills/project-understanding/references/$(basename $f)"
-  diff -q "$src" "$f"
-done
-```
-
-### 2. 同步 SKILL.md（**无需复制**）
-
-`/mpdev-understand` 和 `/mpdev-contracts` 在运行时**实时读** skill 的 SKILL.md（不像 references 那样作了本地副本）。skill 更新自动生效，无需手工同步。
-
-理由：SKILL.md 是命令的"工作流主线"，每次执行都重新加载；references 是"按技术栈细化指令"，体量大且 SKILL.md 内部相对路径引用，所以才做本地 mirror。
-
-### 3. 添加新数据库方言
+### 2. 添加新数据库方言
 
 参考 [`.claude/templates/dialects/README.md`](./templates/dialects/README.md) 的 §3 "添加新 dialect"。完整 step-by-step 在那里，本文件不重复。
 
 简短流程：复制现有 dialect 作骨架 → 改 yaml 元数据 → 改 9 个 BLOCK → 在 `mpdev-init.md` 的 Step 8.2 表格加识别行。
 
-### 4. 添加新测试 flavor（项目类型）
+### 3. 添加新测试 flavor（项目类型）
 
 如果项目类型不在内置 7 种里（http-api / web-frontend / microservices / mobile-app / algo-service / data-pipeline / robot-iot），需要新增 flavor。
 
@@ -591,7 +573,7 @@ done
 5. **校验**：`grep -c "<!-- /BLOCK:" templates/test-flavors/{your-type}.md` 必须等于 9
 6. **测试**：在样本项目跑 `/mpdev-test detect-flavor` 验证识别 + 注入正确
 
-### 5. Agent 文件 (`agents/*.md`) 重新生成
+### 4. Agent 文件 (`agents/*.md`) 重新生成
 
 `agents/*.md` 是 `/mpdev-init` 从 `templates/*.tmpl` + 各模块 CLAUDE.md 生成的产物。**何时重新生成**：
 
@@ -606,7 +588,7 @@ done
 # 它会询问是否覆盖已存在的 agents/*.md，一般选"全部覆盖"（除非你手动改过）
 ```
 
-### 6. 跨项目复用整套 `.claude/`
+### 5. 跨项目复用整套 `.claude/`
 
 把整个 `.claude/` 拷到新项目后，标准激活流程：
 
@@ -620,7 +602,7 @@ done
 
 无需手动改 commands / templates —— 这两个目录是框架级、跨项目通用。
 
-### 7. mpdev-runs/ 历史归档清理
+### 6. mpdev-runs/ 历史归档清理
 
 `mpdev-runs/` 会随时间膨胀。建议策略：
 

@@ -1,6 +1,6 @@
 # Python 数据处理系统 — 分轮执行指令
 
-> 本文件由 SKILL.md 在检测到 Python 数据处理/ETL 类项目时加载。按 Prompt 1-6 逐轮执行。
+> 本文件由 `/mpdev-understand` 在 Step 3 检测到 Python 数据处理/ETL 类项目时加载。按 Prompt 1-6 逐轮执行。
 >
 > **适用场景**：以"消息转换/聚合/清洗/路由"为核心的 Python 中间层服务。术语保持中性——示例中的事件名（如 `algo.anomaly.detected` / `alert.processed`）只是占位，请按项目实际事件命名替换。
 

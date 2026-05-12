@@ -51,7 +51,11 @@ NEW_VERSION=$(cat "$SUITE_ROOT/VERSION" 2>/dev/null || echo "$VERSION")
 info "更新框架文件"
 cp -r "$SUITE_ROOT/.claude/commands/." "$TARGET/commands/"
 cp "$SUITE_ROOT/.claude/templates/"*.tmpl "$TARGET/templates/"
-cp -r "$SUITE_ROOT/.claude/templates/understand/." "$TARGET/templates/understand/"
+# understand/references/ 是 /mpdev-understand 按技术栈加载的语言指南
+if [ -d "$SUITE_ROOT/.claude/templates/understand" ]; then
+  mkdir -p "$TARGET/templates/understand"
+  cp -r "$SUITE_ROOT/.claude/templates/understand/." "$TARGET/templates/understand/"
+fi
 cp "$SUITE_ROOT/.claude/MPDev-Scheme.md" "$TARGET/"
 cp "$SUITE_ROOT/.claude/mpdev-suite-workflow.md" "$TARGET/"
 cp "$SUITE_ROOT/.claude/README.md" "$TARGET/"

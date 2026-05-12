@@ -873,8 +873,9 @@ slug = 从用户需求原文首句取前 8 个词 → 去虚词 → kebab-case �
 │   │   ├── algo-service.md     算法/ML 推理
 │   │   ├── data-pipeline.md    数据管道
 │   │   └── robot-iot.md        机器人/IoT
-│   └── understand/            project-understanding skill 的本地副本（自包含 fallback）
+│   └── understand/            references 子目录
 │       └── references/        按技术栈分片（java/python×4/vue），共 2333 行
+│                              被 /mpdev-understand 在 Step 3 按检测规则加载
 ├── agents/                    由 /mpdev-init 生成（当前实例: mpdevops）
 │   ├── architect.md
 │   ├── dba.md                 条件触发（DB 变更时）

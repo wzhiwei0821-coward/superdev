@@ -1,6 +1,6 @@
 # Java Spring 后端 — 分轮执行指令（覆盖 Spring Boot 与 Spring Cloud）
 
-> 本文件由 SKILL.md 在检测到 Java 项目时加载。按 Prompt 1-6 逐轮执行。
+> 本文件由 `/mpdev-understand` 在 Step 3 检测到 Java 项目时加载。按 Prompt 1-6 逐轮执行。
 >
 > **适用范围**：Spring Boot 单体应用 + Spring Cloud 微服务架构。Prompt 中标注 `[Cloud]` 的小节仅在检测到 Spring Cloud 依赖时执行。
 

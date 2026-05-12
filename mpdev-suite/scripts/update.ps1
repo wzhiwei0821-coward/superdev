@@ -69,7 +69,11 @@ try {
     Info "更新框架文件"
     Copy-Item -Path (Join-Path $ClaudeRoot 'commands/*') -Destination (Join-Path $Target 'commands') -Recurse -Force
     Copy-Item -Path (Join-Path $ClaudeRoot 'templates/*.tmpl') -Destination (Join-Path $Target 'templates') -Force
-    Copy-Item -Path (Join-Path $ClaudeRoot 'templates/understand/*') -Destination (Join-Path $Target 'templates/understand') -Recurse -Force
+    # understand/references/ 是 /mpdev-understand 按技术栈加载的语言指南
+    if (Test-Path (Join-Path $ClaudeRoot 'templates/understand')) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $Target 'templates/understand') | Out-Null
+        Copy-Item -Path (Join-Path $ClaudeRoot 'templates/understand/*') -Destination (Join-Path $Target 'templates/understand') -Recurse -Force
+    }
     Copy-Item -Path (Join-Path $ClaudeRoot 'MPDev-Scheme.md') -Destination $Target -Force
     Copy-Item -Path (Join-Path $ClaudeRoot 'mpdev-suite-workflow.md') -Destination $Target -Force
     Copy-Item -Path (Join-Path $ClaudeRoot 'README.md') -Destination $Target -Force

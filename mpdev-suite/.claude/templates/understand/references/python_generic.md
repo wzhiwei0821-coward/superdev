@@ -1,6 +1,6 @@
 # Python 通用项目 — 分轮执行指令
 
-> 本文件由 SKILL.md 在检测到通用 Python 项目时加载（fallback；不属于调度/数据处理/算法专属类型）。按 Prompt 1-6 逐轮执行。
+> 本文件由 `/mpdev-understand` 在 Step 3 检测到通用 Python 项目时加载（fallback；不属于调度/数据处理/算法专属类型）。按 Prompt 1-6 逐轮执行。
 >
 > **适用场景**：
 > - HTTP API 服务（FastAPI / Flask / Django / Starlette / Sanic）
