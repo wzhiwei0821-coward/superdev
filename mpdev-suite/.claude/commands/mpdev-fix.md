@@ -561,6 +561,83 @@ request_changes → 最多 1 轮修复:
 
 ---
 
+## Step 5.5: 浏览器验证（仅前端 bug，软门）
+
+时序：Step 5 code review 通过之后、Step 6 修复报告之前。
+
+**目的**：前端 bug 修完后，跑同一复现路径，用截图 + console errors 比对 Step 2.5 的基线，证明 bug 真的修好了。
+
+### 5.5.1 确认服务已重启
+
+```
+对每个 is_frontend_bug=true 且 status=fixed 的 bug:
+  
+  Read .claude/.mpdev-env-state.yml
+  找 modules[name={module}].start_cmd
+  
+  判定:
+    含 "npm" / "vite" / "webpack" / "vue-cli-service" → 假定 hot-reload 自动
+                                                       等 3 秒后继续
+    其他（如 Java SSR / Python 模板）:
+      AskUserQuestion:
+        "代码已修，是否运行 /mpdev-env restart {module} 后再验证？
+        选项: [是，自动重启 / 已手动重启 / 跳过验证]"
+      选"自动重启" → Bash 执行 /mpdev-env restart 等价命令
+      选"跳过验证" → bug.verified = skipped, 跳到下一个 bug
+```
+
+### 5.5.2 调 probe-browser intent=verify
+
+```
+Read .claude/templates/runtime-probe/probe-browser.md
+准备输入:
+  module = bug.module
+  bug_description = bug.title + bug.description
+  intent = "verify"
+  entry_url = bug.repro_evidence.entry_url（沿用 Step 2.5 的入口）
+  batch_id = 当前批次 ID
+按"步骤"节执行 → 拿 verify_result
+```
+
+### 5.5.3 判定 verified 状态
+
+```
+match verify_result.status:
+  "ok" + repro_confirmed=false:
+    bug.verified = true
+    bug.verify_evidence = verify_result（含修后截图/console log）
+    继续下一个 bug
+  
+  "ok" + repro_confirmed=true:
+    bug.verified = false
+    AskUserQuestion:
+      "{bug.title} 修复后浏览器仍可复现:
+        - 修前 errors: {bug.repro_evidence.console_errors 前 3 条}
+        - 修后 errors: {verify_result.console_errors 前 3 条}
+       
+       选项:
+         a) 回 Step 4 让 impl agent 再修一轮（建议）
+         b) 标 cannot_fix，记录到报告
+         c) 强制通过（用户认为 bug 已修，浏览器假阳性）"
+    选 a → 回 Step 4 重修该 bug（最多 1 轮，第二轮仍 verified=false 则强制走 b）
+    选 b → bug.status = "cannot_fix" + verified = false
+    选 c → bug.verified = "forced"
+  
+  其他失败:
+    bug.verified = skipped
+    bug.verify_skip_reason = verify_result.error
+```
+
+### 容错
+
+| 场景 | 行为 |
+|------|------|
+| 服务重启失败 | bug.verified = skipped, reason="service restart failed" |
+| Playwright 在 navigate 阶段就失败 | bug.verified = skipped, reason="navigate failed" |
+| verify 阶段已经走到第二轮 | 强制标 cannot_fix（防止死循环） |
+
+---
+
 ## Step 6: 修复报告
 
 ### 6.1 生成每个 fixed bug 的单独报告
