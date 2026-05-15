@@ -1,7 +1,7 @@
 ---
 name: mpdev-fix
 description: 轻量修复 — 单 bug 或批量清单（禅道 CSV / Markdown），跳过 Architect 和 Contract 直接让 impl agent 修复
-allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion
+allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion, mcp__playwright__*, mcp__mysql__*
 ---
 
 # /mpdev-fix — 轻量 Bug 修复（单 bug + 批量清单）
@@ -130,6 +130,17 @@ else:
 3. 描述中含文件扩展 → .java=java, .vue=vue, .py→看路径前缀(dispatch/analytics/algor)
 4. 描述中含类/路径特征 → Controller/Service=java, Pad/H5/Web=vue
 5. 都不行 → module=unknown（Step 1 让用户补）
+
+### 0.3.1 前端 bug 标记（决定 Step 2.5 探针选择）
+
+对每个 bug 追加字段 `is_frontend_bug`：
+
+```
+判定（任一即为 true）:
+  - bug.module ∈ {vue, h5, pad, web, frontend}
+  - bug.title + bug.description 含关键词:
+    页面 | 白屏 | 下拉框 | 按钮 | 点击 | 表单 | 路由 | 跳转 | 样式 | 展示 | 刷新 | 渲染
+```
 ```
 
 ### 0.4 统一数据结构
