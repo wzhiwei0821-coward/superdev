@@ -56,6 +56,12 @@ if [ -d "$SUITE_ROOT/.claude/templates/understand" ]; then
   mkdir -p "$TARGET/templates/understand"
   cp -r "$SUITE_ROOT/.claude/templates/understand/." "$TARGET/templates/understand/"
 fi
+# runtime-probe/ 是 v1.3.0+ 引入的运行时探针子能力
+if [ -d "$SUITE_ROOT/.claude/templates/runtime-probe" ]; then
+  mkdir -p "$TARGET/templates/runtime-probe"
+  cp -r "$SUITE_ROOT/.claude/templates/runtime-probe/." "$TARGET/templates/runtime-probe/"
+  info "  + 框架文件: templates/runtime-probe/"
+fi
 cp "$SUITE_ROOT/.claude/MPDev-Scheme.md" "$TARGET/"
 cp "$SUITE_ROOT/.claude/mpdev-suite-workflow.md" "$TARGET/"
 cp "$SUITE_ROOT/.claude/README.md" "$TARGET/"
