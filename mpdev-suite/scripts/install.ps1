@@ -86,6 +86,26 @@ try {
     # 版本标
     Set-Content -Path (Join-Path $Target '.mpdev-version') -Value $ActualVersion -Encoding utf8 -NoNewline
 
+    # .gitignore 注入（v1.3.0+ 引入 runtime-probe 凭据 + 笔记目录）
+    $GitignorePath = Join-Path (Split-Path $Target -Parent) '.gitignore'
+    $GitignoreEntries = @(
+        '.claude/.mpdev-runtime-creds.yml',
+        '.claude/.mpdev-env-state.yml',
+        '.claude-notes/'
+    )
+    if (Test-Path $GitignorePath) {
+        $existing = Get-Content $GitignorePath -ErrorAction SilentlyContinue
+        foreach ($entry in $GitignoreEntries) {
+            if ($existing -notcontains $entry) {
+                Add-Content -Path $GitignorePath -Value $entry -Encoding utf8
+                Info "已追加到 .gitignore: $entry"
+            }
+        }
+    } else {
+        Set-Content -Path $GitignorePath -Value ($GitignoreEntries -join "`n") -Encoding utf8
+        Info "已新建 .gitignore（含运行时文件忽略规则）"
+    }
+
     Ok "mpdev-suite v$ActualVersion 已安装到 $Target"
 } finally {
     Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
