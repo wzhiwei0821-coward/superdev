@@ -1,7 +1,7 @@
 ---
 name: mpdev-understand
 description: 项目深度理解 — 给各模块生成高质量 CLAUDE.md（mpdev 生命周期阶段 0a）
-allowed-tools: Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion
+allowed-tools: Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion, mcp__mysql__*
 ---
 
 # /mpdev-understand — 项目深度理解 + CLAUDE.md 生成
