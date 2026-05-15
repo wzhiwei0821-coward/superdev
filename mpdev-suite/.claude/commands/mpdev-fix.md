@@ -392,6 +392,11 @@ bugs_result:
       - path: "..."
         changes: "..."
     test_result: pass | fail | no_test
+    similar_patterns:                  # 新增：用于 Step 4.5 同类问题扫描
+      - description: "未做 null 检查直接解引用"
+        grep: "\\.getTask\\(\\)\\.[a-z]"
+      - description: "..."
+        grep: "..."
   - id: 3
     ...
 shared_root_cause: null | "多个 bug 共享根因的描述"
@@ -415,6 +420,91 @@ cross_module_issue: null | "其他模块也需改的描述"
 ### 4.2 继续下一组
 
 **不论本组结果，继续下一个模块组**。失败不终止整批。
+
+---
+
+## Step 4.5: 同类问题扫描（用户确认后批量修）
+
+时序：Step 4 impl agent 修复完成之后、Step 5 code review 之前。
+
+**目的**：修一个 bug 不等于修一类问题。impl agent 输出的 `similar_patterns` 告诉我们去哪儿 grep 同类位置。
+
+### 4.5.1 收集 grep 模式
+
+```
+对每个 status=fixed 的 bug:
+  从 bug.similar_patterns 提取 grep 模式列表
+  跳过 similar_patterns 为空的 bug（impl agent 认为没有模式可扫）
+```
+
+### 4.5.2 全仓 grep + 排除已修文件
+
+```
+对每个 grep 模式:
+  Grep(pattern, path=".", -n=true, output_mode="content", head_limit=30)
+  排除:
+    - 本批次已修文件: fixed.files_changed[*].path
+    - 测试/示例目录: **/test/**, **/tests/**, **/example/**, **/demo/**
+    - 构建产物: target/, dist/, build/, node_modules/
+  收集 → similar_candidates[]
+```
+
+### 4.5.3 展示 + 用户确认
+
+```
+若 similar_candidates 为空 → 跳过本 bug 的 4.5.4，继续
+若 similar_candidates 超过 20 个 → 截前 20 + 备注"还有 N 个未审视"
+
+展示:
+  "修 #{bug.id} 时识别出 {N} 个可能同类的位置:
+     a) {file:line} {context_excerpt}
+     b) {file:line} {context_excerpt}
+     ...
+   选哪些一起修？
+   选项: [全选 / 部分（输入字母如 'a,c,e'） / 都不修]"
+
+AskUserQuestion 收集
+```
+
+### 4.5.4 调 impl agent 第二轮（仅选中位置）
+
+```
+若用户选了候选:
+  bug.similar_fixes_count = len(selected_candidates)   # 用于 Step 6 报告
+  bug.similar_locations = selected_candidates           # 用于 Step 6 报告"同类位置"节
+  
+  Agent(
+    subagent_type="{module}-impl",
+    description="修同类位置 {N} 处",
+    prompt="""
+    刚刚修了 bug #{id}: {root_cause}
+    
+    现在请用同一思路修以下位置（已用户确认）:
+    {selected_candidates}
+    
+    要求:
+    - 复用 bug #{id} 修复的代码风格
+    - 输出格式同 Step 4 的 YAML（必含 status / files_changed）
+    - 标记 from_similar_scan: true
+    - 标记 parent_bug_id: {bug.id}    # 用于 Step 6 报告归属
+    """
+  )
+  
+  追加结果到 fixed_list（标记 from_similar_scan: true, parent_bug_id={bug.id}）
+
+若用户选"都不修":
+  bug.similar_fixes_count = 0
+  bug.similar_locations = []
+```
+
+### 容错
+
+| 场景 | 行为 |
+|------|------|
+| similar_patterns 为空 | 跳过本 bug 的 4.5（impl agent 没识别出可推广模式） |
+| grep 0 命中 | 跳过用户确认，继续 |
+| 候选 > 20 | 截前 20 + 报告附"还有 N 个未审视" |
+| impl agent 第二轮失败 | 标 cannot_fix + 保留原 bug fixed 状态 |
 
 ---
 
