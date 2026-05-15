@@ -11,6 +11,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增 flavor / dialect / 命令 / agent
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [1.3.0] — 2026-05-15
+
+把 `/mpdev-fix` 和 `/mpdev-understand` 从纯静态分析升级为「静态 → 运行时验证 → 推理 → 验证」闭环，新增 4 个独立探针作为通用子能力。fix 加 Step 2.5（复现）/ 4.5（同类扫描）/ 5.5（浏览器验证）；understand 加 Step 5.5（DB 字典）/ 5.6（WS 静态扫描）。所有探针失败时软门降级，凭据存于 gitignored creds.yml。
+
+### Added
+- **`templates/runtime-probe/` 新目录**（5 个文件 ~700 行）：通用探针子能力
+  - `README.md`：探针总览 / 命名约定 / 调用契约 / 凭据约定
+  - `probe-db.md`：MySQL 连接 + 3 种 intent（query-dict / reproduce / verify-fix）
+  - `probe-http.md`：curl 触发 endpoint，超时/auth/归档处理
+  - `probe-browser.md`：基于 mcp__playwright__*，LLM 自由探索复现/验证前端 bug
+  - `probe-ws.md`：纯静态 grep WS 端点 + 消息类型（Java/Python/Node/Frontend 4 语言）
+- **`/mpdev-fix` 新增 3 个 Step**：
+  - Step 2.5 环境复现（软门）：按 bug 类型选探针采集运行时事实
+  - Step 4.5 同类问题扫描：基于 impl agent 输出的 similar_patterns 全仓 grep，用户确认后批量修
+  - Step 5.5 浏览器验证（仅前端 bug）：调 probe-browser intent=verify 对照 Step 2.5 基线
+- **`/mpdev-fix` 报告字段扩展**：单 bug frontmatter 新增 repro_state/verified/similar_fixes_count；body 新增 3 章节（复现证据/同类位置/验证结果）；批量总览改 3 列统计（fixed&verified / fixed未验证 / cannot_fix）
+- **`/mpdev-understand` 新增 2 个 Step**：
+  - Step 5.5 DB 字典查询：调 probe-db query-dict 自动扫字典表 + 写 .claude-notes/{module}/dict-snapshots.md
+  - Step 5.6 WS 端点扫描：调 probe-ws 写 .claude-notes/{module}/ws-endpoints.md
+- **CLAUDE.md 通用区块新增 4a/4b**：WebSocket 端点 + 字典常量（仅索引，不嵌全表）
+- **`.gitignore` 自动注入**（install.sh / install.ps1）：`.mpdev-runtime-creds.yml` / `.mpdev-env-state.yml` / `.claude-notes/` 三条
+- **`update.sh` / `update.ps1`**：拷贝 `templates/runtime-probe/` 作为框架文件（全量覆盖，无三方合并）
+
+### Changed
+- `/mpdev-fix` frontmatter `allowed-tools` 新增 `mcp__playwright__*` 和 `mcp__mysql__*`
+- `/mpdev-understand` frontmatter `allowed-tools` 新增 `mcp__mysql__*`
+- `/mpdev-fix` Step 4 impl agent YAML 输出新增 `similar_patterns` 字段（用于 Step 4.5 输入）
+
+### Notes
+- **凭据隔离**：DB / API token 仅写 gitignored `.mpdev-runtime-creds.yml`，不进归档报告
+- **软门设计**：环境不可用时所有探针返 `skipped` + 报告标注 ⚠️，不阻塞主流程
+- **playwright 触发条件**：模块 ∈ {vue, h5, pad, web, frontend} 或 bug 描述含前端关键词，全程参与（复现+验证）
+- **同类扫描安全网**：全仓 grep + 用户确认 + impl agent 二次修复（不强制）
+- **限制**：纯后端 bug 不做自动 HTTP 验证（用户手动 curl 或在 /mpdev-commit 前自验）；动态 WS 监听 / 多数据库实例切换不在本期范围
+- **升级路径**：跑过老版本的项目重跑 update.sh / update.ps1 即可拿到 runtime-probe；首次 fix/understand 调用会触发凭据收集 AskUserQuestion
+
 ## [1.1.0] — 2026-04-30
 
 新增文档增量刷新闭环。第 13 个 AI agent（`doc-refresher`）属于 MPDev-Scheme.md §7.1 定义的"框架层（不变）"通用 agent，与 code-reviewer / integration-checker / acceptance-reviewer 同等定位，由 `/mpdev-init` Step 10 按通用职责落地。
