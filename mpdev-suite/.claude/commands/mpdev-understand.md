@@ -486,10 +486,37 @@ Prompt 1-4.5 执行完后，执行 Prompt 5：
 2. 目录结构
 3. ⚠️ 接口字段（跨模块字段，改了必须同步契约仓库）
 4. 内部字段（模块内自由修改的字段）
+   4a. WebSocket 端点（v1.3.0 新增；从 Step 5.6 的 ws-endpoints.md 抽摘要）
+   4b. 字典常量（v1.3.0 新增；从 Step 5.5 的 dict-snapshots.md 抽表名+用途+引用，不嵌全表）
 5. 编码规范（必须从第 4 轮代码采样归纳，标注依据来源，不要写泛泛空话）
 6. 构建与部署
 7. 与其他模块的关系
 8. 已知隐含知识（第 5 轮用户回答的内容）
+
+#### 4a. WebSocket 端点 — 形态规则
+
+```markdown
+## WebSocket 端点
+
+| 路径 | handler | 方向 | 消息类型数 | 详细 |
+|------|---------|------|----------:|------|
+| /ws/task-events | TaskEventsHandler.java:45 | bidirectional | 3 | [ws-endpoints.md](.claude-notes/{module}/ws-endpoints.md#ws-task-events) |
+```
+
+不嵌完整消息 schema —— 详细 schema 留在 ws-endpoints.md，CLAUDE.md 只给索引。
+
+#### 4b. 字典常量 — 形态规则
+
+```markdown
+## 字典常量
+
+| 字典表           | 用途           | 值数量 | 详细快照 |
+|------------------|---------------|------:|---------|
+| dict_task_type   | 任务类型枚举   | 8     | [snapshots](.claude-notes/{module}/dict-snapshots.md#dict_task_type) |
+| sys_status       | 系统状态码     | 5     | [snapshots](.claude-notes/{module}/dict-snapshots.md#sys_status) |
+```
+
+不嵌全表内容 —— 详细行留在 dict-snapshots.md，CLAUDE.md 只给目录。
 
 ### 7.2 类型特有区块
 
