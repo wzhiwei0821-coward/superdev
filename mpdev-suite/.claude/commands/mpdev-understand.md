@@ -351,6 +351,92 @@ find/grep 找到文件列表后先数数量：
 - 【确认项】：确定正确的信息
 - 【存疑项】：无法从代码确认的问题
 
+## Step 5.5: Prompt 4.6 — DB 字典查询（按模块）
+
+时序：Prompt 4.5 之后、Prompt 5（验证 + 提问）之前。
+
+**目的**：CLAUDE.md 不能只描述 schema，要含真实字典值，方便后续 fix/dev 知道枚举有哪些。
+
+### 5.5.1 判断模块是否有 DB
+
+```
+对每个 SCOPE 模块:
+  Phase A: 读 .claude-notes/{module}/round2.md "DB schema" 节，找 MySQL/PostgreSQL/SQLite 关键字
+  Phase B（兜底）: Grep "datasource|jdbc:|database:|DATABASE_URL" path={module_dir}/**/application*.yml + config*.yml + settings.py
+  
+  任一命中 → 视为有 DB，进入 5.5.2
+  都未命中 → 跳过该模块
+```
+
+### 5.5.2 调 probe-db intent=query-dict
+
+```
+Read .claude/templates/runtime-probe/probe-db.md
+准备输入:
+  module = {当前模块名}
+  intent = "query-dict"
+按"步骤"节执行 → 拿 query_result
+```
+
+### 5.5.3 结果归档
+
+```
+match query_result.status:
+  "ok":
+    探针已写 .claude-notes/{module}/dict-snapshots.md
+    在 round2.md 的 "DB Schema" 节末尾追加一行链接:
+      "- 字典值快照: [dict-snapshots.md](./dict-snapshots.md)"
+  
+  "no-creds" / "conn-failed" / "skipped":
+    在 round2.md 末尾追加:
+      "字典查询跳过：{query_result.error}"
+    继续下一个模块（不阻塞合成 Step）
+```
+
+### 容错
+
+| 场景 | 行为 |
+|------|------|
+| state.yml 不存在 | 提示用户先 /mpdev-env start 或手动建 state.yml，跳过本 Step |
+| 用户拒填凭据 | 探针返 skipped，本 Step 跳过 |
+| 字典表 0 命中 | 探针返 status=ok 但 evidence 为空，写 "未发现字典表" 到 snapshots |
+
+## Step 5.6: Prompt 4.7 — WebSocket 端点静态扫描
+
+时序：5.5 之后、Step 6 之前。
+
+### 5.6.1 调 probe-ws
+
+```
+对每个 SCOPE 模块:
+  Read .claude/templates/runtime-probe/probe-ws.md
+  准备输入:
+    module = {当前模块名}
+  按"步骤"节执行 → 拿 ws_result
+```
+
+### 5.6.2 结果归档
+
+```
+match ws_result.status:
+  "ok":
+    探针已写 .claude-notes/{module}/ws-endpoints.md
+    在 round2.md "接口边界" 节追加 "WebSocket 端点" 子节，含摘要表（路径 + handler + 方向 + 消息数）
+  
+  "no-endpoints":
+    在 round2.md "接口边界" 节追加 "WebSocket 端点：无（grep 未命中）"
+  
+  "skipped":
+    在 round2.md 追加 "WebSocket 扫描跳过：{ws_result.error}"
+```
+
+### 容错
+
+| 场景 | 行为 |
+|------|------|
+| 模块语言未识别 | 探针返 skipped，本 Step 跳过 |
+| handler 文件不可读 | 探针仍返 ok，messages 为空，notes 中标注 |
+
 ## Step 6: Prompt 5 — 验证、提问与 TODO
 
 Prompt 1-4.5 执行完后，执行 Prompt 5：
