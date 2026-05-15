@@ -397,8 +397,9 @@ match query_result.status:
 
 | 场景 | 行为 |
 |------|------|
-| state.yml 不存在 | 提示用户先 /mpdev-env start 或手动建 state.yml，跳过本 Step |
-| 用户拒填凭据 | 探针返 skipped，本 Step 跳过 |
+| state.yml 不存在 | 探针返 skipped → 在 round2.md 末尾追加"字典查询跳过：no state.yml"，提示用户先 /mpdev-env start，继续 |
+| 用户拒填凭据（选"跳过此次"）| 探针返 skipped, error="credentials collection declined by user" → 本模块跳过，继续下一个 |
+| mysql MCP 未配置 + 无 mysql CLI | 探针策略 C → skipped, error="no mysql client available" → 本模块跳过，继续 |
 | 字典表 0 命中 | 探针返 status=ok 但 evidence 为空，写 "未发现字典表" 到 snapshots |
 
 ## Step 5.6: Prompt 4.7 — WebSocket 端点静态扫描

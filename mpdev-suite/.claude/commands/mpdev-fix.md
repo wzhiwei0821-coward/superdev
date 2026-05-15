@@ -308,8 +308,11 @@ bug.repro_state = match reproduction_result.status:
 ```
 对每个 repro_state ∈ {confirmed, diverged} 的 bug:
   归档已由探针自己完成（.claude-notes/repro/{batch_id}/bug-{id}.*）
-  在 bug.context 中追加引用，供 Step 4 impl agent 使用:
-    repro_path: <路径>
+  在 bug.repro_evidence 中记录所有相关路径（供 Step 4 impl agent 用 + Step 5.5 verify 阶段对照）:
+    entry_url: <浏览器入口 URL，若 probe-browser>
+    screenshot_path: <截图路径，若 probe-browser>
+    console_log_path: <{prefix}.console.txt 路径，若 probe-browser>
+    repro_path: <SQL/HTTP log 路径，按探针类型>
     evidence_summary: <2-3 句关键信号摘要>
 ```
 
@@ -318,7 +321,11 @@ bug.repro_state = match reproduction_result.status:
 | 场景 | 行为 |
 |------|------|
 | 探针文件不存在 | 警告 + 标 repro_state=skipped, reason="probe-{name}.md missing" |
+| state.yml 不存在 | 探针返 skipped → repro_state=skipped, reason="no state.yml, run /mpdev-env start first" |
 | 服务未启动 | 探针返 conn-refused → skipped + 提示 `/mpdev-env restart {module}` |
+| playwright MCP 未配置 | probe-browser 守卫返 skipped → repro_state=skipped, reason="playwright MCP unavailable" |
+| mysql MCP 未配置 + 无 mysql CLI | probe-db 策略 C → skipped, reason="no mysql client available" |
+| 用户拒填凭据 | probe-db 收到"跳过此次" → skipped, reason="credentials collection declined by user" |
 | 凭据收集后仍连不上 | skipped + reason="creds may be stale, check .mpdev-runtime-creds.yml" |
 
 ---
@@ -572,18 +579,40 @@ request_changes → 最多 1 轮修复:
 ```
 对每个 is_frontend_bug=true 且 status=fixed 的 bug:
   
+  # 守卫 1: state.yml 不存在 / 模块不在 state.yml
   Read .claude/.mpdev-env-state.yml
-  找 modules[name={module}].start_cmd
+  若文件不存在 → bug.verified = skipped, verify_skip_reason = "no state.yml, run /mpdev-env start first"
+                跳到下一个 bug
+  找 modules[name={module}]
+  若该模块不在 state.yml → bug.verified = skipped, verify_skip_reason = "module not registered in state.yml"
+                          跳到下一个 bug
   
+  # 守卫 2: 服务是否实际在跑（先 ping 一下，比"猜 hot-reload"靠谱）
+  health_url = modules[name={module}].health_check 提取出的 URL
+  Bash("curl -sf {health_url} --max-time 3 -o /dev/null") → exit_code
+  若 exit_code != 0:
+    AskUserQuestion:
+      "{module} 服务似乎未在 {health_url} 响应。验证步骤需要服务在跑。
+       选项: [运行 /mpdev-env restart {module} / 已手动重启过 / 跳过验证此 bug]"
+    选"运行 /mpdev-env restart" → Bash 等价命令 + 等 5 秒 + 重新 curl
+       仍失败 → bug.verified = skipped, verify_skip_reason = "service restart failed"
+    选"已手动重启过" → 重新 curl 验证
+       仍失败 → 提示用户检查服务后 → bug.verified = skipped
+    选"跳过验证" → bug.verified = skipped, verify_skip_reason = "user declined restart"
+                  跳到下一个 bug
+  
+  # 服务确认在跑后：判定是否需要刷新（hot-reload vs 重启）
+  start_cmd = modules[name={module}].start_cmd
   判定:
-    含 "npm" / "vite" / "webpack" / "vue-cli-service" → 假定 hot-reload 自动
-                                                       等 3 秒后继续
+    start_cmd 含 "npm" / "vite" / "webpack" / "vue-cli-service" → 假定 hot-reload 自动
+                                                                  等 3 秒让 reload 生效 后继续
     其他（如 Java SSR / Python 模板）:
       AskUserQuestion:
-        "代码已修，是否运行 /mpdev-env restart {module} 后再验证？
+        "代码已修，{module} 不属于 hot-reload 系。是否运行 /mpdev-env restart {module}？
         选项: [是，自动重启 / 已手动重启 / 跳过验证]"
-      选"自动重启" → Bash 执行 /mpdev-env restart 等价命令
-      选"跳过验证" → bug.verified = skipped, 跳到下一个 bug
+      选"自动重启" → Bash 执行 /mpdev-env restart 等价命令 + 等 5 秒 + 重新 curl health 确认
+      选"跳过验证" → bug.verified = skipped, verify_skip_reason = "restart declined"
+                    跳到下一个 bug
 ```
 
 ### 5.5.2 调 probe-browser intent=verify
@@ -596,6 +625,9 @@ Read .claude/templates/runtime-probe/probe-browser.md
   intent = "verify"
   entry_url = bug.repro_evidence.entry_url（沿用 Step 2.5 的入口）
   batch_id = 当前批次 ID
+  bug_id = bug.id（用于基线 console.txt 文件名匹配）
+  repro_console_log_path = bug.repro_evidence.console_log_path（若 Step 2.5 已记录）
+                          缺省值 = 让探针自己 glob
 按"步骤"节执行 → 拿 verify_result
 ```
 
@@ -632,8 +664,13 @@ match verify_result.status:
 
 | 场景 | 行为 |
 |------|------|
+| state.yml 不存在 | bug.verified = skipped, reason="no state.yml, run /mpdev-env start first" |
+| 模块不在 state.yml | bug.verified = skipped, reason="module not registered in state.yml" |
+| 服务未在跑（curl health 失败）| AskUserQuestion 3 选 1：自动重启 / 已手动重启 / 跳过 |
 | 服务重启失败 | bug.verified = skipped, reason="service restart failed" |
+| playwright MCP 未配置 | probe-browser 守卫返 skipped → bug.verified = skipped, reason="playwright MCP unavailable" |
 | Playwright 在 navigate 阶段就失败 | bug.verified = skipped, reason="navigate failed" |
+| reproduce 基线 console.txt 找不到 | bug.verified = skipped, reason="no reproduce baseline found"（建议人工目视确认） |
 | verify 阶段已经走到第二轮 | 强制标 cannot_fix（防止死循环） |
 
 ---

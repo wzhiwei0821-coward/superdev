@@ -31,11 +31,20 @@ Read .claude/.mpdev-env-state.yml
 Read .claude/.mpdev-runtime-creds.yml （文件可能不存在）
 查 modules.{module}.db 节
 若节缺失:
-  AskUserQuestion 收集:
+  AskUserQuestion 第 1 步（决策）:
+    "{module} 需要 DB 凭据才能查询，是否现在填写？"
+    选项: [填写凭据 / 跳过此次（本次不连 DB）]
+    
+  若用户选"跳过此次" → 立即返回 status=skipped, error="credentials collection declined by user"
+  
+  若用户选"填写凭据" → AskUserQuestion 第 2 步（收集）:
     - username [模块 {module} 的 MySQL 用户名]
     - password [密码（不会展示在报告里）]
     - database [数据库名，缺省自动取 state.yml 中的 mysql 默认]
-  写回 creds.yml（保留其他节不动）
+  
+  收集后校验：若 username 或 password 为空字符串/仅空白 → 视为放弃 → status=skipped, error="incomplete credentials"
+  
+  通过校验后写回 creds.yml（保留其他节不动）
 ```
 
 ### 3. 选择 SQL 客户端（按优先级）
@@ -75,9 +84,10 @@ Read .claude/.mpdev-runtime-creds.yml （文件可能不存在）
 
 ```
 1. 解析 query_hint:
-   - 包含 SQL 关键字 → 直接当作 SQL（移除危险动词：DROP/DELETE/UPDATE/TRUNCATE 后才执行）
-   - 包含表名 + 列名 → 拼 SELECT
-   - 仅含错误关键词 → 返回 status=skipped, error="cannot infer query from hint"
+   - 包含 SQL 关键字（SELECT/FROM/WHERE/JOIN）→ 直接当作 SQL（移除危险动词：DROP/DELETE/UPDATE/TRUNCATE 后才执行）
+   - 同时含表名（与 schema 中已知表名匹配）和列名 → 拼 SELECT * FROM {table} WHERE {col}=...（带条件）
+   - 仅含表名（无列名/无条件）→ 拼 SELECT * FROM {table} LIMIT 10（小范围采样）
+   - 仅含错误关键词（非 SQL 语法，非已知表名）→ 返回 status=skipped, error="cannot infer query from hint"
 2. 执行查询 → 拿结果
 3. 存档到 .claude-notes/repro/{batch_id|"single"}/db-{timestamp}.sql:
    含查询语句 + 结果（前 50 行）
@@ -112,6 +122,8 @@ error: "..."                                          # 仅失败
 | 失败 | status | 说明 |
 |------|--------|------|
 | state.yml 不存在 | skipped | "no state.yml" |
+| 用户拒填凭据 | skipped | "credentials collection declined by user" |
+| 凭据字段为空 | skipped | "incomplete credentials" |
 | 凭据收集后仍连不上 | conn-failed | 重试 1 次后返回 |
 | SQL 语法错误 | query-failed | 返回 mysql 报错首行 |
 | query_hint 无法推断 | skipped | "cannot infer query" |

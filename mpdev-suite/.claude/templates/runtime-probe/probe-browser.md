@@ -11,8 +11,22 @@
 | `intent` | 是 | `reproduce` / `verify` |
 | `entry_url` | 否 | 自定义入口（缺省从 state.yml health_check 取根） |
 | `batch_id` | 否 | trace 归档 ID |
+| `repro_console_log_path` | 否 | （仅 `intent=verify` 时建议传）reproduce 阶段保存的 `.console.txt` 路径，用作对照基线。未传时 verify 步骤会 glob `.claude-notes/repro/{batch_id\|"single"}/bug-*-reproduce-*.console.txt` 找最近的，可能找错文件 |
+| `bug_id` | 否 | （仅 verify 推荐传）用于路径前缀和基线匹配 |
 
 ## 步骤
+
+### 0. 检测 Playwright MCP 可用性（守卫）
+
+```
+若当前会话工具列表中不含 mcp__playwright__playwright_navigate（即 playwright MCP 未配置/未安装）:
+  立即返回 status=skipped, error="playwright MCP unavailable; install MCP server or skip frontend probe"
+  不进入后续步骤
+
+判定方式（任一即视为不可用）:
+  - 调用方在调用本探针时已知 mcp__playwright__* 工具组不存在
+  - 尝试调用 mcp__playwright__playwright_navigate 立即抛 "tool not found" / InputValidationError
+```
 
 ### 1. 解析入口 URL
 
@@ -80,9 +94,15 @@ LLM 据 bug_description 判断:
 #### intent=verify
 
 ```
-读 reproduce 阶段保存的 {prefix=...-reproduce-*}.console.txt 作为对照基线:
+基线路径确定:
+  若调用方传了 repro_console_log_path → 直接读该文件
+  否则 → glob ".claude-notes/repro/{batch_id|'single'}/bug-{bug_id|'*'}-reproduce-*.console.txt"
+         按 mtime 倒序取最新一个；若 0 命中 → status=skipped, error="no reproduce baseline found"
+
+对照逻辑:
   - 同样的 console error 仍存在 → repro_confirmed=true（bug 没修好）
   - 之前的 error 消失 + 页面正常 → repro_confirmed=false（修复生效，verified=true）
+  - 基线文件 0 行（reproduce 时也没 error）但 verify 时新出 error → repro_confirmed=true（疑似引入新 bug）
 ```
 
 ### 6. 关闭浏览器
