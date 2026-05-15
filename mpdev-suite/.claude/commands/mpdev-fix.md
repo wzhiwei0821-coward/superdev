@@ -254,6 +254,75 @@ AskUserQuestion: "分组正确吗？"
 
 ---
 
+## Step 2.5: 环境复现（软门）
+
+时序：Step 2 升级信号检查之后、Step 3 收集上下文之前。
+
+**目的**：在让 impl agent 推理之前，先用真实环境采集事实——避免凭印象瞎猜。复现失败时软门降级，继续走静态分析，但报告标注 ⚠️。
+
+### 2.5.1 选择探针
+
+```
+对每个 bug:
+  if bug.is_frontend_bug == true:
+    probe = probe-browser
+  elif bug.title + bug.description 含 "/api/" 或具体 endpoint 路径（正则 /\/[a-z][a-z0-9/]+/）:
+    probe = probe-http
+  elif bug.title + bug.description 含 SQL 关键字 / 表名 / 列名 / "database":
+    probe = probe-db (intent=reproduce)
+  else:
+    probe = probe-http (兜底，尝试触发服务异常日志)
+```
+
+### 2.5.2 加载并执行探针
+
+```
+Read .claude/templates/runtime-probe/probe-{name}.md
+按其中"输入"节准备上下文变量:
+  - module = bug.module
+  - intent = "reproduce"
+  - 其他变量按 bug 描述提取
+按"步骤"节执行 → 拿 reproduction_result
+```
+
+### 2.5.3 判定 repro_state
+
+```
+bug.repro_state = match reproduction_result.status:
+  "ok" + repro_confirmed=true:
+    bug.repro_state = "confirmed"
+    bug.repro_evidence = reproduction_result（含 screenshot/SQL/HTTP log 路径）
+  
+  "ok" + repro_confirmed=false:
+    bug.repro_state = "diverged"
+    （触发了，但与描述对不上 → 警告，但继续走 impl）
+  
+  其他（skipped/conn-failed/timeout/no-endpoints/...）:
+    bug.repro_state = "skipped"
+    bug.repro_skip_reason = reproduction_result.error
+    （软门：继续走静态分析）
+```
+
+### 2.5.4 持久化 + 注入上下文
+
+```
+对每个 repro_state ∈ {confirmed, diverged} 的 bug:
+  归档已由探针自己完成（.claude-notes/repro/{batch_id}/bug-{id}.*）
+  在 bug.context 中追加引用，供 Step 4 impl agent 使用:
+    repro_path: <路径>
+    evidence_summary: <2-3 句关键信号摘要>
+```
+
+### 容错
+
+| 场景 | 行为 |
+|------|------|
+| 探针文件不存在 | 警告 + 标 repro_state=skipped, reason="probe-{name}.md missing" |
+| 服务未启动 | 探针返 conn-refused → skipped + 提示 `/mpdev-env restart {module}` |
+| 凭据收集后仍连不上 | skipped + reason="creds may be stale, check .mpdev-runtime-creds.yml" |
+
+---
+
 ## Step 3: 收集上下文（按模块组）
 
 按依赖顺序处理模块组：`java → dispatch → analytics → algor → vue`
