@@ -65,6 +65,25 @@ mkdir -p "$TARGET/mpdev-runs"/{commits,fixes,setup,test-cases,test-exports,test-
 # 打版本标
 echo "$ACTUAL_VERSION" > "$TARGET/.mpdev-version"
 
+# .gitignore 注入（v1.3.0+ 引入 runtime-probe 凭据 + 笔记目录）
+GITIGNORE_PATH="$(dirname "$TARGET")/.gitignore"
+GITIGNORE_ENTRIES=(
+  ".claude/.mpdev-runtime-creds.yml"
+  ".claude/.mpdev-env-state.yml"
+  ".claude-notes/"
+)
+if [ -f "$GITIGNORE_PATH" ]; then
+  for entry in "${GITIGNORE_ENTRIES[@]}"; do
+    if ! grep -qxF "$entry" "$GITIGNORE_PATH"; then
+      echo "$entry" >> "$GITIGNORE_PATH"
+      info "已追加到 .gitignore: $entry"
+    fi
+  done
+else
+  printf '%s\n' "${GITIGNORE_ENTRIES[@]}" > "$GITIGNORE_PATH"
+  info "已新建 .gitignore（含运行时文件忽略规则）"
+fi
+
 ok "mpdev-suite v$ACTUAL_VERSION 已安装到 $TARGET"
 
 # --- next steps ---
