@@ -658,7 +658,7 @@ for bug in fixed_list + failed_list:
   Write(".claude/mpdev-runs/fixes/{file_id}.md", ...)
 ```
 
-**单 bug 报告模板**（保留原格式，新增 `batch_id` 追溯）：
+**单 bug 报告模板**（保留原格式，新增 `batch_id` 追溯 + 运行时验证字段）：
 
 ```markdown
 ---
@@ -666,8 +666,12 @@ fix_id: {file_id}
 module: {module}
 status: {fixed / cannot_fix}
 generated_at: {timestamp}
-batch_id: {batch_id | null}     # 批量模式才有
-source_id: {bug.source | null}   # 禅道 Bug 编号（若有）
+batch_id: {batch_id | null}                  # 批量模式才有
+source_id: {bug.source | null}                # 禅道 Bug 编号（若有）
+repro_state: {confirmed / diverged / skipped} # 新增：Step 2.5 复现结果
+verified: {true / false / forced / skipped / not_applicable}  # 新增：Step 5.5 验证结果
+verification_method: {browser / http / db / none}             # 新增
+similar_fixes_count: {N}                      # 新增：Step 4.5 同类位置数
 ---
 
 # 修复报告：{bug.title}
@@ -682,6 +686,22 @@ source_id: {bug.source | null}   # 禅道 Bug 编号（若有）
 | 文件 | 变更 |
 |------|------|
 | {path} | {changes} |
+
+## 复现证据（Step 2.5）
+{若 repro_state=confirmed: 嵌入截图引用 / curl 输出 / SQL 结果路径 + 关键摘要}
+{若 repro_state=diverged: ⚠️ 触发了相似现象但与描述不一致：<说明>}
+{若 repro_state=skipped: ⚠️ 未能复现 — 原因：{skip_reason}}
+
+## 同类位置（Step 4.5）
+{若 similar_fixes_count > 0: 列出一并修的位置表（file:line / 修复要点）}
+{若 0: "未发现同类位置" 或 "impl agent 未输出 similar_patterns"}
+
+## 验证结果（Step 5.5）
+{若 verified=true: ✅ 修后浏览器路径正常 + 嵌入对照截图引用}
+{若 verified=false: ⚠️ 浏览器复现仍触发 — 已标 cannot_fix / 强制通过}
+{若 verified=forced: ⚠️ 用户强制通过 — 浏览器仍有此现象，用户认为假阳性}
+{若 verified=skipped: 跳过验证 — 原因：{verify_skip_reason}}
+{若 verified=not_applicable: 后端 bug，无浏览器验证}
 
 ## 测试
 - 结果：{pass / fail / no_test}
@@ -717,12 +737,17 @@ contract_risk_acknowledged: {true | false}
 
 ## 统计
 
-| 模块 | 总数 | ✅ fixed | ❌ cannot_fix |
-|------|-----:|---------:|--------------:|
-| java | 3 | 3 | 0 |
-| vue  | 2 | 2 | 0 |
-| dispatch | 1 | 0 | 1 |
-| **合计** | **6** | **5** | **1** |
+| 模块 | 总数 | ✅ fixed & verified | ⚠️ fixed 未验证 | ❌ cannot_fix |
+|------|-----:|--------------------:|---------------:|--------------:|
+| java | 3 | 3 | 0 | 0 |
+| vue  | 2 | 1 | 1 | 0 |
+| dispatch | 1 | 0 | 0 | 1 |
+| **合计** | **6** | **4** | **1** | **1** |
+
+> verified 含义：
+> - ✅ fixed & verified: status=fixed + verified ∈ {true, not_applicable}
+> - ⚠️ fixed 未验证: status=fixed + verified ∈ {false, forced, skipped}
+> - ❌ cannot_fix: 修复失败或验证失败标了 cannot_fix
 
 ## 逐 bug 结果
 
