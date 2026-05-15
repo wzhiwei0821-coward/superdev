@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mpdev",
+  "owner": {
+    "name": "wzhiwei0821-coward"
+  },
+  "metadata": {
+    "description": "多模块 AI 协同开发框架 plugin — Claude Code 标准化分发",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "mpdev",
+      "source": "./",
+      "description": "9 个 /mpdev:* 命令 + 4 个框架 agent + 5 个 runtime probe + 13 个 AI agent 模板",
+      "category": "dev-tools",
+      "tags": ["multi-module", "ai-coding", "code-review", "contract-driven", "chinese"],
+      "strict": false
+    }
+  ]
+}
