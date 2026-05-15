@@ -74,6 +74,12 @@ try {
         New-Item -ItemType Directory -Force -Path (Join-Path $Target 'templates/understand') | Out-Null
         Copy-Item -Path (Join-Path $ClaudeRoot 'templates/understand/*') -Destination (Join-Path $Target 'templates/understand') -Recurse -Force
     }
+    # runtime-probe/ 是 v1.3.0+ 引入的运行时探针子能力
+    if (Test-Path (Join-Path $ClaudeRoot 'templates/runtime-probe')) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $Target 'templates/runtime-probe') | Out-Null
+        Copy-Item -Path (Join-Path $ClaudeRoot 'templates/runtime-probe/*') -Destination (Join-Path $Target 'templates/runtime-probe') -Recurse -Force
+        Info "  + 框架文件: templates/runtime-probe/"
+    }
     Copy-Item -Path (Join-Path $ClaudeRoot 'MPDev-Scheme.md') -Destination $Target -Force
     Copy-Item -Path (Join-Path $ClaudeRoot 'mpdev-suite-workflow.md') -Destination $Target -Force
     Copy-Item -Path (Join-Path $ClaudeRoot 'README.md') -Destination $Target -Force
