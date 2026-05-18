@@ -11,6 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增命令 / agent / 探针 / flavor / dialect
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [2.0.1] — 2026-05-18
+
+### Fixed
+- **install BOM 自检**：T42 audit 发现的 bug — 中文 Windows 上无 BOM 的 .ps1 被 GBK 解码 → migrate 等脚本完全无法运行。install.sh / install.ps1 末尾扫描 mpdev/**/*.ps1，缺 BOM 自动补齐。同时保护 fork 场景（同事用无 BOM 编辑器改 .ps1 后 push 回仓的情况）。
+
+### Added
+- **`--auto-clean-framework-agents` flag**（migrate-from-v1.sh + .ps1）：opt-in 删除 4 个框架 agent（code-reviewer / integration-checker / acceptance-reviewer / doc-refresher）让 plugin 接管。默认不删（保护项目自定义）。
+- migrate 脚本支持 `--help` / `-h` 输出 usage。
+
+### Notes
+- v2.0.0 用户无需 migrate，直接 `/plugin update` 即可。
+- semver patch：完全向后兼容，未改任何命令行为或文件格式。
+
 ## [2.0.0] — 2026-05-15
 
 **BREAKING CHANGES**: mpdev 从「项目级 `.claude/` 复制」模式迁到「Claude Code Plugin」模式。
