@@ -1,6 +1,6 @@
 # superdev — mpdev 分发仓库
 
-> **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.0.0 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
+> **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.1.1 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
 
 [![mpdev version](https://img.shields.io/badge/mpdev-v2.1.1-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
 
@@ -18,10 +18,10 @@
 
 | 通道 | 状态 | 安装方式 | 命名空间 | 适用 |
 |------|------|----------|---------|------|
-| **[mpdev/](./mpdev/) v2.0.0** | ✅ **推荐** | Claude Code Plugin | `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
+| **[mpdev/](./mpdev/) v2.1.1** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
 | **[mpdev-suite/](./mpdev-suite/) v1.3.1** | 🟡 维护期 | 项目级 `.claude/` 复制 | `/mpdev-fix` `/mpdev` … | v1 老项目暂不迁移者 |
 
-> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.0.0 plugin。
+> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.1.1 plugin。
 
 ---
 
@@ -76,7 +76,7 @@ iex $s
 
 ```
 superdev/
-├── mpdev/                              v2.0.0 plugin（推荐）
+├── mpdev/                              v2.1.1 plugin（推荐）
 │   ├── .claude-plugin/
 │   │   ├── plugin.json                 plugin manifest
 │   │   └── marketplace.json            marketplace manifest
@@ -84,9 +84,10 @@ superdev/
 │   ├── templates/                      模板（.tmpl + dialects + test-flavors + understand + runtime-probe）
 │   ├── agents/                         4 个框架级 shared agent
 │   ├── docs/                           quickstart / upgrade-guide / troubleshooting / MPDev-Scheme / workflow
-│   ├── bin/install.{sh,ps1}            plugin 一键安装
+│   ├── bin/install.{sh,ps1}            plugin 一键安装（双源 GitLab/GitHub）
 │   ├── scripts/migrate-from-v1.{sh,ps1}  v1→v2 项目迁移
-│   ├── VERSION                         2.0.0
+│   ├── scripts/sync-to-gitlab.sh       维护者：superdev → GitLab 同步
+│   ├── VERSION                         2.1.1
 │   ├── CHANGELOG.md
 │   ├── LICENSE                         MIT
 │   └── README.md
@@ -122,7 +123,13 @@ superdev/
 
 ```bash
 # 1. 装 v2 plugin（全局，一次性）
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+
+# 内网（默认，从 GitLab；需 SSH key 已配）
+bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+
+# 外网（从 GitHub）
+bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
+
 # 后在 Claude Code 内: /plugin install mpdev@mpdev
 
 # 2. 在每个 v1 项目根跑迁移脚本
@@ -177,7 +184,7 @@ iex $s
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│                v2.0.0 Plugin 架构（推荐）                          │
+│                v2.1.1 Plugin 架构（推荐）                          │
 │                                                                    │
 │  ┌──────────────────────────────────────┐                          │
 │  │  ~/.claude/plugins/cache/mpdev/      │  ← plugin 自带（只读）  │
