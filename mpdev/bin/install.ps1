@@ -75,3 +75,22 @@ Write-Host ''
 Write-Host "文档:    $Target/docs/quickstart.md"
 Write-Host "升级:    $Target/docs/upgrade-guide.md"
 Write-Host "排错:    $Target/docs/troubleshooting.md"
+
+# BOM 自检（v2.0.1+）
+Write-Host ''
+$utf8Bom = New-Object System.Text.UTF8Encoding $true
+$fixed = 0
+foreach ($f in (Get-ChildItem -Path $Target -Recurse -Filter '*.ps1').FullName) {
+    $bytes = [System.IO.File]::ReadAllBytes($f) | Select-Object -First 3
+    $hasBom = ($bytes.Count -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
+    if (-not $hasBom) {
+        $content = [System.IO.File]::ReadAllText($f, [System.Text.Encoding]::UTF8)
+        [System.IO.File]::WriteAllText($f, $content, $utf8Bom)
+        $fixed++
+    }
+}
+if ($fixed -gt 0) {
+    Write-Host "⚠️ 补充了 $fixed 个 .ps1 文件的 UTF-8 BOM（可能源仓未加 BOM）" -ForegroundColor Yellow
+} else {
+    Write-Host '✅ 所有 .ps1 文件 BOM 完整' -ForegroundColor Green
+}
