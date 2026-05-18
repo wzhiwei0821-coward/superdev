@@ -6,10 +6,19 @@
 
 ## 1. 安装（30 秒）
 
+**内网（默认，从 GitLab）**：先确认 `ssh -T git@10.173.28.211` 可通
+
 ```bash
-# 克隆并准备 plugin
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
 ```
+
+**外网（GitHub）**：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
+```
+
+也可以在已 clone 的本地仓跑 `bash bin/install.sh` 或 `bash bin/install.sh --source=github`。
 
 脚本会引导你在 Claude Code 内跑 2 条命令：
 
