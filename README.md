@@ -2,7 +2,7 @@
 
 > **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.0.0 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
 
-[![mpdev version](https://img.shields.io/badge/mpdev-v2.1.0-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
+[![mpdev version](https://img.shields.io/badge/mpdev-v2.1.1-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
 
 ---
 
@@ -25,15 +25,21 @@
 
 ---
 
-## ⚡ 5 分钟跑通（v2.0.0 推荐）
+## ⚡ 5 分钟跑通（v2.1.1 推荐）
 
 ```bash
 # 1. 装 plugin（全局一次，所有项目可用）
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+
+# 内网（默认，从 GitLab；需 SSH key 配好）
+bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+
+# 外网（GitHub）
+bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 ```
 
 **Windows PowerShell**（强制 UTF-8 解码，避免乱码）：
 ```powershell
+# 默认 GitLab；切公网用 $env:MPDEV_SOURCE='github'
 $wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
 $s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
 if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
@@ -209,16 +215,22 @@ iex $s
 
 ### v2.x 发布流程（mpdev/）
 
-1. 改 `mpdev/VERSION`（如 `2.1.0`）
-2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.1.0] — YYYY-MM-DD` 段
-3. 在 `mpdev/.claude-plugin/plugin.json` 同步 `"version"` 字段
+1. 改 `mpdev/VERSION`（如 `2.1.1`）
+2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.1.1] — YYYY-MM-DD` 段
+3. 在 `mpdev/.claude-plugin/plugin.json` + `marketplace.json` 同步 `"version"` 字段
 4. commit + tag：
    ```bash
-   git add mpdev/VERSION mpdev/CHANGELOG.md mpdev/.claude-plugin/plugin.json
-   git commit -m "release: mpdev v2.1.0"
-   git tag mpdev-v2.1.0
+   git add mpdev/VERSION mpdev/CHANGELOG.md mpdev/.claude-plugin/
+   git commit -m "release: mpdev v2.1.1"
+   git tag mpdev-v2.1.1
    git push origin main --tags
    ```
+5. **同步到 GitLab**（v2.1.1+ 新增）：
+   ```bash
+   bash mpdev/scripts/sync-to-gitlab.sh           # 真同步
+   bash mpdev/scripts/sync-to-gitlab.sh --dry-run # 先 dry-run 看 diff
+   ```
+   GitLab 仓: http://10.173.28.211/robot-ai/mppm/mpdev
 
 ### v1.x patch 流程（mpdev-suite/）
 
