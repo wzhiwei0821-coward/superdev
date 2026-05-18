@@ -218,7 +218,8 @@
       "Bash(bash mpdev/bin/install.sh --bogus)",
       "Bash(bash mpdev/bin/install.sh --source=github --target=/tmp/v211-test)",
       "Bash(bash mpdev/bin/install.sh --source=gitlab --target=/tmp/v211-test --skip-ssh-keyscan)",
-      "Bash(python -c \"import json,sys; sys.stdout.reconfigure\\(encoding='utf-8'\\); p=json.load\\(open\\('mpdev/.claude-plugin/plugin.json',encoding='utf-8'\\)\\); m=json.load\\(open\\('mpdev/.claude-plugin/marketplace.json',encoding='utf-8'\\)\\); print\\('plugin:',p['version'],'hooks:',p.get\\('hooks'\\)\\); print\\('marketplace:',m['metadata']['version']\\)\")"
+      "Bash(python -c \"import json,sys; sys.stdout.reconfigure\\(encoding='utf-8'\\); p=json.load\\(open\\('mpdev/.claude-plugin/plugin.json',encoding='utf-8'\\)\\); m=json.load\\(open\\('mpdev/.claude-plugin/marketplace.json',encoding='utf-8'\\)\\); print\\('plugin:',p['version'],'hooks:',p.get\\('hooks'\\)\\); print\\('marketplace:',m['metadata']['version']\\)\")",
+      "Bash(git commit *)"
     ]
   }
 }
