@@ -1,4 +1,4 @@
-# mpdev v2.0.0 Plugin 一键安装 (PowerShell)
+﻿# mpdev v2.0.0 Plugin 一键安装 (PowerShell)
 #
 # Usage:
 #   $wc=New-Object Net.WebClient; $wc.Encoding=[Text.Encoding]::UTF8

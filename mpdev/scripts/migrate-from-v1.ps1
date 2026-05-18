@@ -1,4 +1,4 @@
-# v1.x → v2.0.0 项目迁移脚本 (PowerShell)
+﻿# v1.x → v2.0.0 项目迁移脚本 (PowerShell)
 #
 # 在 v1 项目根跑。备份 .claude/ → 删 plugin 接管的文件 → 保留项目数据
 
