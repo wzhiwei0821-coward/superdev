@@ -74,7 +74,7 @@ $ARGUMENTS
      prompt="<tester.md 全文>\n\n## 任务: 模式 A\n仅生成测试计划，不需要用例规格。\n\n输入: {需求描述或 Blueprint 摘要}"
    )
 
-3. 输出到 .claude/mpdev:runs/test-plans/{timestamp}-{slug}.md
+3. 输出到 .claude/mpdev-runs/test-plans/{timestamp}-{slug}.md
 ```
 
 ---
@@ -99,7 +99,7 @@ $ARGUMENTS
    prompt: "为以下文件设计测试用例（重点关注未覆盖方法）：{file_list}\n\n关键词过滤: {keyword}"
 
 4. 输出:
-   .claude/mpdev:runs/test-cases/{module}-{timestamp}.md
+   .claude/mpdev-runs/test-cases/{module}-{timestamp}.md
 
 5. 提示用户:
    "已生成 N 条用例。下一步可用 /mpdev:test run --module {module} 执行。"
@@ -212,7 +212,7 @@ scope 选项：
   - [java] BUG-001 NPE on null taskName / 复现: ...
   - [vue]  BUG-007 列表页白屏 / 复现: ...
 
-保存到 .claude/mpdev:runs/test-exports/bugs-{timestamp}.md
+保存到 .claude/mpdev-runs/test-exports/bugs-{timestamp}.md
 
 提示: "已导出 N 个缺陷。运行 /mpdev:fix @{path} 批量修复。"
 ```

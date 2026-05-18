@@ -692,7 +692,7 @@ for bug in fixed_list + failed_list:
   else:
     file_id = "{timestamp}-{bug.id}-{module}-{slug}"
   
-  Write(".claude/mpdev:runs/fixes/{file_id}.md", ...)
+  Write(".claude/mpdev-runs/fixes/{file_id}.md", ...)
 ```
 
 **单 bug 报告模板**（保留原格式，新增 `batch_id` 追溯 + 运行时验证字段）：
@@ -750,7 +750,7 @@ similar_fixes_count: {N}                      # 新增：Step 4.5 同类位置�
 ### 6.2 生成批量总览（仅 `len(bugs) > 1` 时）
 
 ```
-Write(".claude/mpdev:runs/fixes/batch-{timestamp}.md", ...)
+Write(".claude/mpdev-runs/fixes/batch-{timestamp}.md", ...)
 ```
 
 **批量总览模板**：

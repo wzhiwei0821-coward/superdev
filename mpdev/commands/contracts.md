@@ -566,8 +566,8 @@ routes:
 timestamp = 当前时间 YYYYMMDD-HHMM
 file_id = "{timestamp}-contracts"
 
-Bash("mkdir -p .claude/mpdev:runs/setup")
-Write(".claude/mpdev:runs/setup/{file_id}.md", ...)
+Bash("mkdir -p .claude/mpdev-runs/setup")
+Write(".claude/mpdev-runs/setup/{file_id}.md", ...)
 ```
 
 **归档模板**：

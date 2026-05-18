@@ -11,7 +11,7 @@ allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit
 2. 按依赖关系编排 11 个 subagent
 3. 在关键节点呈现给用户确认
 4. 管理 subagent 间的上下文传递
-5. **每个步骤完成后生成文档到 `.claude/mpdev:runs/{run_id}/`**
+5. **每个步骤完成后生成文档到 `.claude/mpdev-runs/{run_id}/`**
 6. 记录流程问题并在汇总时报告
 
 **本命令是 slash command**，用户通过 `/mpdev:dev 需求描述` 触发。
@@ -64,7 +64,7 @@ run_id    = "{date_part}_{time_part}_{slug}"
 ### 0.2 创建运行目录
 
 ```
-Bash("mkdir -p .claude/mpdev:runs/{run_id}")
+Bash("mkdir -p .claude/mpdev-runs/{run_id}")
 ```
 
 ### 0.3 文档生成约束（贯穿全流程）
@@ -180,7 +180,7 @@ visual_assets:
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/01-requirement.md", ...)` — 内容见 §文档模板库.T0。
+`Write(".claude/mpdev-runs/{run_id}/01-requirement.md", ...)` — 内容见 §文档模板库.T0。
 
 ---
 
@@ -329,7 +329,7 @@ design_tokens:
 
 ### 3.5 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/02-breakdown.md", ...)` — 内容见 §文档模板库.T0.5。
+`Write(".claude/mpdev-runs/{run_id}/02-breakdown.md", ...)` — 内容见 §文档模板库.T0.5。
 
 包含：
 - 输入来源（文件/目录路径清单 或 "粘贴文本"）
@@ -394,7 +394,7 @@ Agent(
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/03-blueprint.md", ...)` — 内容见 §文档模板库.T1。包含 Blueprint 全文 + 用户确认记录（是否调整、调整了什么）。
+`Write(".claude/mpdev-runs/{run_id}/03-blueprint.md", ...)` — 内容见 §文档模板库.T1。包含 Blueprint 全文 + 用户确认记录（是否调整、调整了什么）。
 
 如果 architect 返回"不可行" → 仍然写文档，status: failed，记录失败原因，整个流程终止。
 
@@ -451,7 +451,7 @@ NFR 中的"数据迁移"决定回填策略；"性能"决定索引与分区；"�
 
 ### 5.4 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/04-dba-design.md", ...)` — DBA Design Doc 全文。
+`Write(".claude/mpdev-runs/{run_id}/04-dba-design.md", ...)` — DBA Design Doc 全文。
 
 ---
 
@@ -477,7 +477,7 @@ Agent(
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/05-contract-changes.md", ...)` — 内容见 §文档模板库.T2。包含 Part 1 文件清单 + Part 2 结构化摘要 + 契约仓库 commit/branch 信息（如有）。
+`Write(".claude/mpdev-runs/{run_id}/05-contract-changes.md", ...)` — 内容见 §文档模板库.T2。包含 Part 1 文件清单 + Part 2 结构化摘要 + 契约仓库 commit/branch 信息（如有）。
 
 模式 A 如果未触发 contract-designer，写一个"skipped, 无契约变更"的占位文档。
 
@@ -506,8 +506,8 @@ Agent(
 ## 任务: 模式 A（test-architect）
 
 ### 输入
-- Blueprint:  {.claude/mpdev:runs/{run_id}/03-blueprint.md 全文}
-- Contract:   {.claude/mpdev:runs/{run_id}/05-contract-changes.md 全文}
+- Blueprint:  {.claude/mpdev-runs/{run_id}/03-blueprint.md 全文}
+- Contract:   {.claude/mpdev-runs/{run_id}/05-contract-changes.md 全文}
 - 项目类型:    {tester.md frontmatter 中的 project_type}
 - DBA 设计（如有）: {04-dba-design.md}
 
@@ -529,8 +529,8 @@ P0 用例必须设计完整（含输入、期望、后置条件）；P1 用例�
 ### 7.4 📄 文档输出
 
 ```
-Write(.claude/mpdev:runs/{run_id}/06-test-plan.md, ...)
-Write(.claude/mpdev:runs/{run_id}/07-test-cases.md, ...)
+Write(.claude/mpdev-runs/{run_id}/06-test-plan.md, ...)
+Write(.claude/mpdev-runs/{run_id}/07-test-cases.md, ...)
 ```
 
 ---
@@ -626,7 +626,7 @@ fail_with_report →
 
 ```
 对每个 impl agent:
-  Write(".claude/mpdev:runs/{run_id}/08-impl-{module}.md", ...)
+  Write(".claude/mpdev-runs/{run_id}/08-impl-{module}.md", ...)
   — 内容见 §文档模板库.T3
 ```
 
@@ -684,8 +684,8 @@ Agent(
 ### 9.4 📄 文档输出
 
 ```
-Write(.claude/mpdev:runs/{run_id}/09-test-log.md, ...)
-Write(.claude/mpdev:runs/{run_id}/10-test-incidents.md, ...) (如有缺陷)
+Write(.claude/mpdev-runs/{run_id}/09-test-log.md, ...)
+Write(.claude/mpdev-runs/{run_id}/10-test-incidents.md, ...) (如有缺陷)
 新增/修改的测试代码文件（在各模块的 test/ 目录下）
 ```
 
@@ -743,8 +743,8 @@ comment_only         | fail                | → 修复循环(integration)，com
 Step 10 产出两份独立文档：
 
 ```
-Write(".claude/mpdev:runs/{run_id}/11-code-review.md", ...)       — 见 §文档模板库.T4a
-Write(".claude/mpdev:runs/{run_id}/12-integration-check.md", ...) — 见 §文档模板库.T4b
+Write(".claude/mpdev-runs/{run_id}/11-code-review.md", ...)       — 见 §文档模板库.T4a
+Write(".claude/mpdev-runs/{run_id}/12-integration-check.md", ...) — 见 §文档模板库.T4b
 ```
 
 每份文档包含：
@@ -824,7 +824,7 @@ reject             → 呈现缺失项 → 轻度: 分派补充 / 重度: 回 ar
 
 ### 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/13-acceptance.md", ...)` — 内容见 §文档模板库.T5。
+`Write(".claude/mpdev-runs/{run_id}/13-acceptance.md", ...)` — 内容见 §文档模板库.T5。
 
 包含：
 - 需求覆盖清单（逐项 ☑/☐ + 证据位置）
@@ -876,7 +876,7 @@ Agent(
 ### 12.3 📄 文档输出
 
 ```
-Write(.claude/mpdev:runs/{run_id}/14-test-summary.md, ...)
+Write(.claude/mpdev-runs/{run_id}/14-test-summary.md, ...)
 ```
 
 ---
@@ -898,7 +898,7 @@ test-reporter 完成后、Step 13 汇总前调用 doc-refresher agent，把本�
 
 ### 12.5.2 聚合输入
 
-主编排器从已有产出聚合（不引入新读取，全部来自 `.claude/mpdev:runs/{run_id}/`）：
+主编排器从已有产出聚合（不引入新读取，全部来自 `.claude/mpdev-runs/{run_id}/`）：
 
 ```yaml
 involved_modules: [...]              # 来自 02-breakdown.md "涉及模块"
@@ -964,7 +964,7 @@ Agent(
 
 ### 12.5.5 📄 文档输出
 
-`Write(".claude/mpdev:runs/{run_id}/15-doc-refresh.md", ...)` — 内容见 §文档模板库.T7。
+`Write(".claude/mpdev-runs/{run_id}/15-doc-refresh.md", ...)` — 内容见 §文档模板库.T7。
 
 包含：
 - 触发判定摘要
@@ -1014,7 +1014,7 @@ Agent(
 
 **A. 运行目录的最终汇总文档**
 
-`Write(".claude/mpdev:runs/{run_id}/99-summary.md", ...)` — 内容见 §文档模板库.T6。
+`Write(".claude/mpdev-runs/{run_id}/99-summary.md", ...)` — 内容见 §文档模板库.T6。
 
 包含：
 - 运行结论 + 各阶段时间线 + 总耗时
@@ -1030,7 +1030,7 @@ Agent(
 
 **B. 更新 INDEX.md**
 
-`Read + Edit` 修改 `.claude/mpdev:runs/INDEX.md`，在"运行记录"表格顶部追加一行：
+`Read + Edit` 修改 `.claude/mpdev-runs/INDEX.md`，在"运行记录"表格顶部追加一行：
 
 ```markdown
 | {timestamp} | {run_id} | {需求摘要 ≤40字} | {A/B/C} | ✅ accept / ⚠️ conditional / ❌ reject / 🔴 failed | [详情](./{run_id}/) |

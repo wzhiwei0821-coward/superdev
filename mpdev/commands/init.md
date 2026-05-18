@@ -87,7 +87,7 @@ Glob("**/CLAUDE.md")
 
 对每个业务模块（非契约仓库）：
 
-1. 读取对应模板 ``${CLAUDE_PLUGIN_ROOT}/templates/impl-{language}.tmpl`
+1. 读取对应模板 `${CLAUDE_PLUGIN_ROOT}/templates/impl-{language}.tmpl`
 2. 替换占位符：
 
 | 占位符 | 来源 |
@@ -109,7 +109,7 @@ Glob("**/CLAUDE.md")
 
 ### Step 6：生成 Architect 定义
 
-1. 读取 ``${CLAUDE_PLUGIN_ROOT}/templates/architect.tmpl`
+1. 读取 `${CLAUDE_PLUGIN_ROOT}/templates/architect.tmpl`
 2. 汇总所有模块信息：
 
 | 占位符 | 来源 |
@@ -124,7 +124,7 @@ Glob("**/CLAUDE.md")
 ### Step 7：生成 Contract-Designer 定义
 
 1. 如果找到契约仓库：
-   - 读取 ``${CLAUDE_PLUGIN_ROOT}/templates/contract-designer.tmpl`
+   - 读取 `${CLAUDE_PLUGIN_ROOT}/templates/contract-designer.tmpl`
    - 注入仓库路径、目录结构、校验脚本
    - 写入 `.claude/agents/contract-designer.md`
 2. 如果没有契约仓库：
@@ -152,15 +152,15 @@ Glob("**/CLAUDE.md")
 
 | 识别结果 | dialect 文件 |
 |---------|-------------|
-| `mysql` / `mariadb` | ``${CLAUDE_PLUGIN_ROOT}/templates/dialects/mysql.md` |
-| `postgres` / `postgresql` / `opengauss` / `gaussdb` | ``${CLAUDE_PLUGIN_ROOT}/templates/dialects/postgresql.md` |
-| `dm7` / `dm8` / `dameng` / `达梦` / `dm.jdbc` | ``${CLAUDE_PLUGIN_ROOT}/templates/dialects/dameng.md` |
-| `kingbase` / `kingbase8` / `人大金仓` / `com.kingbase8` | ``${CLAUDE_PLUGIN_ROOT}/templates/dialects/kingbase.md` |
+| `mysql` / `mariadb` | `${CLAUDE_PLUGIN_ROOT}/templates/dialects/mysql.md` |
+| `postgres` / `postgresql` / `opengauss` / `gaussdb` | `${CLAUDE_PLUGIN_ROOT}/templates/dialects/postgresql.md` |
+| `dm7` / `dm8` / `dameng` / `达梦` / `dm.jdbc` | `${CLAUDE_PLUGIN_ROOT}/templates/dialects/dameng.md` |
+| `kingbase` / `kingbase8` / `人大金仓` / `com.kingbase8` | `${CLAUDE_PLUGIN_ROOT}/templates/dialects/kingbase.md` |
 | 其他（Oracle / SQL Server / TiDB / OceanBase 等）| 兜底 `mysql.md`，在生成的 dba.md 顶部加注释"⚠️ 检测到 {DB}，当前无专用方言文件，已用 MySQL 方言兜底，需人工补充差异" |
 
 #### 8.3 合并占位符
 
-1. 读 ``${CLAUDE_PLUGIN_ROOT}/templates/dba.tmpl`
+1. 读 `${CLAUDE_PLUGIN_ROOT}/templates/dba.tmpl`
 2. 读选定 dialect 文件，提取：
    - 顶部 yaml 元数据（`db_engine`, `db_engine_short`, `charset`, `pk_convention`, `fk_policy`, `entity_paths`, `migration_dir`）
    - 所有 `<!-- BLOCK:XXX -->` ... `<!-- /BLOCK:XXX -->` 标签内容
@@ -211,8 +211,8 @@ Glob("**/CLAUDE.md")
 
 #### 9.2 合并 tester.tmpl + flavor
 
-1. 读 ``${CLAUDE_PLUGIN_ROOT}/templates/tester.tmpl`
-2. 读 ``${CLAUDE_PLUGIN_ROOT}/templates/test-flavors/{flavor}.md`，提取：
+1. 读 `${CLAUDE_PLUGIN_ROOT}/templates/tester.tmpl`
+2. 读 `${CLAUDE_PLUGIN_ROOT}/templates/test-flavors/{flavor}.md`，提取：
    - 顶部 yaml 元数据（`project_type` / `project_type_short` / `default_test_dir` 等）
    - 8 个 `<!-- BLOCK:XXX -->` 区块（PROJECT_TYPE_SCOPE / TEST_LEVELS / KEY_RISK_AREAS / AUTOMATION_STACK / CI_INTEGRATION / METRICS / NON_FUNCTIONAL / SAMPLE_CASES / DIALECT_CONSTRAINTS）
 3. 替换 tester.tmpl 中的占位符：

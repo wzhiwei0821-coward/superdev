@@ -299,7 +299,7 @@ commit_id = "{timestamp}-{short_sha}-{subject_slug}"
 ```
 
 ```
-Write(".claude/mpdev:runs/commits/{commit_id}.md", ...)
+Write(".claude/mpdev-runs/commits/{commit_id}.md", ...)
 ```
 
 **文档模板**：
@@ -347,7 +347,7 @@ dry_run: {true/false}
 ## 关联
 - 父提交：{parent_sha[:7]}
 - 本提交：{new_commit_sha[:7]}
-- 如本次改动源自某 /mpdev:dev 运行，手动在此处链接 `.claude/mpdev:runs/{run_id}/`
+- 如本次改动源自某 /mpdev:dev 运行，手动在此处链接 `.claude/mpdev-runs/{run_id}/`
 
 ## 下一步建议
 - 是否 push：由作者决定（本命令不自动 push）
@@ -357,7 +357,7 @@ dry_run: {true/false}
 
 ### 8.1 更新 INDEX.md
 
-在 `.claude/mpdev:runs/INDEX.md` "提交记录" 表格顶部追加一行：
+在 `.claude/mpdev-runs/INDEX.md` "提交记录" 表格顶部追加一行：
 
 ```markdown
 | {timestamp} | {short_sha} | {subject ≤40字} | {modules} | [详情](./commits/{commit_id}.md) |
@@ -377,7 +377,7 @@ dry_run: {true/false}
 | message 含特殊字符（` $ 等） | 用 heredoc 单引号形式 `<<'EOF'` 防止 shell 插值 |
 | pre-commit hook 失败 | 展示原因，退出，不自动绕过 |
 | 用户 3 次都选"我自己重写" | 提示可直接用原生 `git commit`，不再循环 |
-| `.claude/mpdev:runs/commits/` 目录不存在 | 自动 `mkdir -p` 创建 |
+| `.claude/mpdev-runs/commits/` 目录不存在 | 自动 `mkdir -p` 创建 |
 
 ## 约束
 
