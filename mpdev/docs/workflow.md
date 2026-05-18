@@ -445,10 +445,10 @@ test-executor 跑测试 → fail 用例 → 10-test-incidents.md (status=open)
 
 ## 跨命令协作：文档留痕
 
-每次跑完 `/mpdev:dev`、`/mpdev:fix`、`/mpdev:commit` 都会在 `.claude/mpdev:runs/` 下留下完整档案：
+每次跑完 `/mpdev:dev`、`/mpdev:fix`、`/mpdev:commit` 都会在 `.claude/mpdev-runs/` 下留下完整档案：
 
 ```
-.claude/mpdev:runs/
+.claude/mpdev-runs/
 ├── INDEX.md              全部历史一览（3 张表：运行 / 修复 / 提交）
 ├── {run_id}/             /mpdev:dev 每次运行的 7-10 份文档
 ├── fixes/                /mpdev:fix 修复报告

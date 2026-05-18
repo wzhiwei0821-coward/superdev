@@ -767,7 +767,7 @@ v1.2 引入**运行目录**机制：每次 `/mpdev:dev` 运行产出一个独立
 ### 8.2 目录结构
 
 ```
-.claude/mpdev:runs/
+.claude/mpdev-runs/
 ├── INDEX.md                       所有运行的索引（最新在顶）
 ├── {run_id}/                      一次 /mpdev:dev 运行
 │   ├── 01-requirement.md          用户需求 + 模式判断
@@ -812,9 +812,9 @@ slug = 从用户需求原文首句取前 8 个词 → 去虚词 → kebab-case �
 
 | 命令 | 产出位置 | 文档数量 |
 |------|---------|---------|
-| `/mpdev:dev` | `.claude/mpdev:runs/{run_id}/` | 7-10 份（含各 impl 模块） |
-| `/mpdev:fix` | `.claude/mpdev:runs/fixes/{fix_id}.md` + 批量模式加 `batch-{timestamp}.md` | 单 bug: 1 份；批量 N 个: N+1 份 |
-| `/mpdev:commit` | `.claude/mpdev:runs/commits/{commit_id}.md` | 1 份（dry-run 不写） |
+| `/mpdev:dev` | `.claude/mpdev-runs/{run_id}/` | 7-10 份（含各 impl 模块） |
+| `/mpdev:fix` | `.claude/mpdev-runs/fixes/{fix_id}.md` + 批量模式加 `batch-{timestamp}.md` | 单 bug: 1 份；批量 N 个: N+1 份 |
+| `/mpdev:commit` | `.claude/mpdev-runs/commits/{commit_id}.md` | 1 份（dry-run 不写） |
 | `/mpdev:init` | 不产出文档（配置类命令） | 0 |
 | `/mpdev:check` | 结果直接输出到对话（用户可手动保存） | 0 |
 | `/mpdev:env` | `.claude/.mpdev-env-state.yml`（状态文件，不是文档） | 0 |
