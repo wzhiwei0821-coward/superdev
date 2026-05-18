@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增 flavor / dialect / 命令 / agent
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [1.3.1] — 2026-05-15
+
+### Notes
+- **维护模式启动**：mpdev v2.0.0 已发布为 Claude Code Plugin。本仓 `mpdev-suite/` 进入维护模式，仅修关键 bug，无新功能。
+- **EOL**: 2026-11-15
+- **升级**: 详见 [../mpdev/docs/upgrade-guide.md](../mpdev/docs/upgrade-guide.md)
+
 ## [1.3.0] — 2026-05-15
 
 把 `/mpdev-fix` 和 `/mpdev-understand` 从纯静态分析升级为「静态 → 运行时验证 → 推理 → 验证」闭环，新增 4 个独立探针作为通用子能力。fix 加 Step 2.5（复现）/ 4.5（同类扫描）/ 5.5（浏览器验证）；understand 加 Step 5.5（DB 字典）/ 5.6（WS 静态扫描）。所有探针失败时软门降级，凭据存于 gitignored creds.yml。
