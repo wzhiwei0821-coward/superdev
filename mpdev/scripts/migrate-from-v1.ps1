@@ -9,6 +9,17 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 
+# ---- 参数（v2.0.1+）----
+$AutoClean = $false
+foreach ($a in $args) {
+    switch ($a) {
+        '--auto-clean-framework-agents' { $AutoClean = $true }
+        '-h' { Write-Host "Usage: migrate-from-v1.ps1 [--auto-clean-framework-agents]`n`n参数:`n  --auto-clean-framework-agents  额外删除 4 个框架 agent，让 plugin 接管。`n                                  默认不删（保护项目自定义）。"; exit 0 }
+        '--help' { Write-Host "Usage: migrate-from-v1.ps1 [--auto-clean-framework-agents]`n`n参数:`n  --auto-clean-framework-agents  额外删除 4 个框架 agent，让 plugin 接管。`n                                  默认不删（保护项目自定义）。"; exit 0 }
+        default { Write-Host "❌ 未知参数: $a" -ForegroundColor Red; exit 1 }
+    }
+}
+
 if (-not (Test-Path '.claude')) {
     Write-Host "[ERROR] 当前目录无 .claude/，不像 v1 项目" -ForegroundColor Red
     exit 1
@@ -46,6 +57,22 @@ foreach ($f in @('MPDev-Scheme.md','mpdev-suite-workflow.md','README.md','.mpdev
     }
 }
 
+# 删 4 个框架 agent（仅当 --auto-clean-framework-agents）
+if ($AutoClean) {
+    Write-Host ''
+    Write-Host '  --auto-clean-framework-agents: 移除 4 个框架 agent' -ForegroundColor Cyan
+    $cleaned = 0
+    foreach ($a in 'code-reviewer','integration-checker','acceptance-reviewer','doc-refresher') {
+        $p = ".claude/agents/$a.md"
+        if (Test-Path $p) {
+            Remove-Item -Force $p
+            Write-Host "  - $p (让 plugin 接管)"
+            $cleaned++
+        }
+    }
+    Write-Host "  ✅ 已清理 $cleaned 个框架 agent" -ForegroundColor Green
+}
+
 Write-Host ''
 Write-Host '▶ Step 3/3: 检查保留的项目数据' -ForegroundColor Cyan
 $agentCount = if (Test-Path '.claude/agents') { (Get-ChildItem '.claude/agents' -File).Count } else { 0 }
@@ -58,7 +85,21 @@ if (Test-Path '.claude/.mpdev-runtime-creds.yml') { Write-Host '  📄 .claude/.
 Write-Host ''
 Write-Host '✅ 迁移完成' -ForegroundColor Green
 Write-Host ''
-Write-Host @"
+if ($AutoClean) {
+    Write-Host @"
+后续:
+  1. 确认 v2 plugin 已装:
+     /plugin list | grep mpdev
+
+  2. ✅ 框架 agent 已被 plugin 接管（已通过 --auto-clean-framework-agents）
+
+  3. 完全重启 Claude Code，验证 /mpdev: 自动补全
+
+  4. 确认无问题后可删备份:
+     Remove-Item -Recurse -Force $Backup
+"@
+} else {
+    Write-Host @"
 后续:
   1. 确认 v2 plugin 已装:
      /plugin list | grep mpdev
@@ -67,8 +108,11 @@ Write-Host @"
      Remove-Item .claude/agents/code-reviewer.md, .claude/agents/integration-checker.md, .claude/agents/acceptance-reviewer.md, .claude/agents/doc-refresher.md
      （项目特化的 *-impl.md / architect.md / 等不要删）
 
+     💡 或下次跑 migrate 时加 --auto-clean-framework-agents flag 自动清理
+
   3. 完全重启 Claude Code，验证 /mpdev: 自动补全
 
   4. 确认无问题后可删备份:
      Remove-Item -Recurse -Force $Backup
 "@
+}
