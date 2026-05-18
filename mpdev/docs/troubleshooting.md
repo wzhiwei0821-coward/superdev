@@ -125,6 +125,83 @@ cd ~/dev/mpdev && git checkout <previous-sha>
 
 ---
 
+## Hooks 故障排查（v2.1.0+）
+
+### Hook 不生效
+
+可能原因：
+
+1. **plugin 装的是 v2.0.x 版本，没 hooks**
+   ```bash
+   cat ~/.claude/plugins/cache/mpdev/mpdev/VERSION
+   ```
+   显示 < 2.1.0 → `/plugin update` 拉新版
+
+2. **plugin.json 未注册 hooks**
+   ```bash
+   grep hooks ~/.claude/plugins/cache/mpdev/mpdev/.claude-plugin/plugin.json
+   ```
+   应见 `"hooks": "./hooks/hooks.json"`。缺失 → 重装 plugin
+
+3. **hooks/*.sh 不可执行**（仅 Linux/Mac）
+   ```bash
+   ls -l ~/.claude/plugins/cache/mpdev/mpdev/hooks/
+   ```
+   `*.sh` 应有 `x` 权限位。缺失 → 重跑 install.sh
+
+4. **Windows 用了 cmd.exe / PowerShell 而非 Git Bash**
+   v2.1.0 hooks 都是 bash 脚本。Windows 必须装 Git for Windows，Claude Code 会用 Git Bash 执行 hook。如未装 → 装 [Git for Windows](https://gitforwindows.org/)
+
+5. **hook 静默失败**
+   bash hook 设计成 fail-silent。临时调试：
+   ```bash
+   bash -x ~/.claude/plugins/cache/mpdev/mpdev/hooks/session-start.sh < /dev/null
+   ```
+   查找 `cannot execute` / `command not found` 等错误。
+
+### Hook 太吵 / 不想要
+
+```bash
+# 一开关全禁（当前 shell 生效）
+export MPDEV_NO_HOOKS=1
+
+# 永久禁用（写入 ~/.bashrc 或 PowerShell profile）
+echo 'export MPDEV_NO_HOOKS=1' >> ~/.bashrc
+```
+
+或卸载 plugin：`/plugin uninstall mpdev`
+
+### Hook 报错"jq: command not found"
+
+hooks 优先用 jq；缺失会退化到 grep/sed 但可能不够准。装 jq：
+
+```bash
+# macOS:   brew install jq
+# Ubuntu:  sudo apt install jq
+# Windows Git Bash: 通常自带
+```
+
+### SessionStart hook 注入的项目类型不对
+
+hook 扫的是项目里**所有** CLAUDE.md。如果版本太旧/不准 → `/mpdev:understand` 刷新各模块 CLAUDE.md。
+
+如果 hook 注入了不该有的模块（如已删除的子项目目录）→ 删 `.claude/agents/<X>-impl.md` 或重跑 `/mpdev:init`。
+
+### Windows .sh 文件 CRLF 行尾报错
+
+Windows git autocrlf 可能把 .sh 转 CRLF，bash 报 `\r: command not found`。修复：
+
+```bash
+cd ~/.claude/plugins/cache/mpdev/mpdev
+dos2unix hooks/*.sh
+# 或者
+for f in hooks/*.sh; do sed -i 's/\r$//' "$f"; done
+```
+
+v2.1.0 install.ps1 自动处理这步；如果你跑的是 install.sh（Linux/Mac/Git Bash）不会出现这个问题。
+
+---
+
 ## 还有其他问题
 
 提 issue 时附：
@@ -133,5 +210,6 @@ cd ~/dev/mpdev && git checkout <previous-sha>
 # 收集诊断信息
 cd ~/.claude/plugins/cache/mpdev/mpdev && cat VERSION
 ls commands/
+ls hooks/    # v2.1.0+
 /plugin list | grep mpdev
 ```
