@@ -153,7 +153,7 @@ Info "mpdev v$Version"
 Write-Host ''
 Write-Host '现在请打开 Claude Code，按顺序输入：'
 Write-Host ''
-Write-Host "  /plugin marketplace add file://$Target" -ForegroundColor Yellow
+Write-Host "  /plugin marketplace add $($Target -replace '\\','/')" -ForegroundColor Yellow
 Write-Host '  /plugin install mpdev@mpdev' -ForegroundColor Yellow
 Write-Host ''
 Write-Host '完成后完全重启 Claude Code，/mpdev: 应见 9 个命令补全。'

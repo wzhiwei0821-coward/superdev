@@ -17,7 +17,7 @@ bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 
 # 然后在 Claude Code 内:
-/plugin marketplace add file://~/dev/mpdev
+/plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 
 # 2. 在老 v1 项目根跑迁移脚本

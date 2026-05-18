@@ -96,12 +96,20 @@ iex $s
 
 ### 1C. 在 Claude Code 内注册并装
 
-脚本末尾会打印两条命令，复制到 Claude Code 输入框跑：
+install 脚本末尾会**直接打印** marketplace add 命令（含已解析的绝对路径），复制即可。
+不要手工拼 `file://...`，Claude Code 不收 URI scheme，只接受 `owner/repo` / `https://...` / 文件系统路径。
+
+通用形式：
 
 ```
-/plugin marketplace add file://~/dev/mpdev
+/plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
+
+> **Windows 注解**：如果 Claude Code 不展开 `~`（不同版本行为不一致），就用脚本输出的绝对路径，**必须正斜杠**：
+> ```
+> /plugin marketplace add C:/Users/<你的用户名>/dev/mpdev
+> ```
 
 **完全重启 Claude Code**（不仅 `/clear`）。完成。
 

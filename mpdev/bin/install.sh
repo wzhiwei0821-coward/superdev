@@ -191,7 +191,7 @@ cat <<EOF
 现在请打开 Claude Code，按顺序输入：
 
   ╭─────────────────────────────────────────────────────────╮
-  │  /plugin marketplace add file://$TARGET
+  │  /plugin marketplace add $TARGET
   │  /plugin install mpdev@mpdev                             │
   ╰─────────────────────────────────────────────────────────╯
 

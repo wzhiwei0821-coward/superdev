@@ -21,7 +21,7 @@
    ```bash
    ls ~/.claude/plugins/cache/mpdev/mpdev/commands/
    ```
-   应见 9 个 .md 文件。没有 → marketplace add 失败，重跑 `/plugin marketplace add file://~/dev/mpdev`
+   应见 9 个 .md 文件。没有 → marketplace add 失败，重跑 `/plugin marketplace add ~/dev/mpdev`
 
 ---
 

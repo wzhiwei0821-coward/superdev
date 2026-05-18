@@ -65,7 +65,7 @@ iex $s
 
 安装脚本末尾会打印两条命令，复制到 Claude Code 输入框跑：
 ```
-/plugin marketplace add file://~/dev/mpdev
+/plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
 

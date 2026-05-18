@@ -38,7 +38,7 @@ Windows PowerShell 等价命令见 [docs/quickstart.md](./docs/quickstart.md)。
 
 然后在 Claude Code 内：
 ```
-/plugin marketplace add file://~/dev/mpdev
+/plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
 
