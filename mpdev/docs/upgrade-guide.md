@@ -8,7 +8,13 @@ v2.0.0 是 BREAKING 变更：命令命名、目录结构、安装方式全变了
 
 ```bash
 # 1. 装 v2 plugin（全局，一次性）
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+
+# 内网用户（默认，从 GitLab；需 SSH key 已配）
+bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+
+# 或外网用户（从 GitHub）
+bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
+
 # 然后在 Claude Code 内:
 /plugin marketplace add file://~/dev/mpdev
 /plugin install mpdev@mpdev
