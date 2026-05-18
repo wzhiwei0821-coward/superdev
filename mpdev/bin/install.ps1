@@ -1,6 +1,9 @@
-﻿# mpdev v2.0.0 Plugin 一键安装 (PowerShell)
+﻿# mpdev Plugin 一键安装 (PowerShell, v2.1.1+)
 #
-# Usage:
+# 默认从公司 GitLab 内网装 (SSH)；--source=github 切公网。
+# Windows 用户跑 GitLab 源前先 ssh -T git@10.173.28.211 接受指纹。
+#
+# Usage (推荐 — 强制 UTF-8 解码避免 ??? 乱码):
 #   $wc=New-Object Net.WebClient; $wc.Encoding=[Text.Encoding]::UTF8
 #   $s=$wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
 #   if($s[0]-eq[char]0xFEFF){$s=$s.Substring(1)}; iex $s
@@ -12,9 +15,69 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 
-$RepoUrl = if ($env:MPDEV_REPO) { $env:MPDEV_REPO } else { 'https://github.com/wzhiwei0821-coward/superdev.git' }
-$Subdir  = if ($env:MPDEV_SUBDIR) { $env:MPDEV_SUBDIR } else { 'mpdev' }
-$Target  = if ($env:MPDEV_TARGET) { $env:MPDEV_TARGET } else { Join-Path $HOME 'dev/mpdev' }
+# ---- Source 配置 ----
+$SourceGitlabUrl    = 'git@10.173.28.211:robot-ai/mppm/mpdev.git'
+$SourceGitlabBranch = 'master'
+$SourceGitlabSubdir = ''
+
+$SourceGithubUrl    = 'https://github.com/wzhiwei0821-coward/superdev.git'
+$SourceGithubBranch = 'main'
+$SourceGithubSubdir = 'mpdev'
+
+$SourceType = if ($env:MPDEV_SOURCE) { $env:MPDEV_SOURCE } else { 'gitlab' }
+$Target     = if ($env:MPDEV_TARGET) { $env:MPDEV_TARGET } else { Join-Path $HOME 'dev/mpdev' }
+$RepoOverride = $null
+$BranchOverride = $null
+$SubdirOverride = $null
+
+# ---- 参数 ----
+foreach ($a in $args) {
+    switch -Regex ($a) {
+        '^--source=gitlab$' { $SourceType = 'gitlab' }
+        '^--source=github$' { $SourceType = 'github' }
+        '^--target=(.+)$'   { $Target = $matches[1] }
+        '^--repo=(.+)$'     { $RepoOverride = $matches[1] }
+        '^--branch=(.+)$'   { $BranchOverride = $matches[1] }
+        '^--subdir=(.+)$'   { $SubdirOverride = $matches[1] }
+        '^(-h|--help)$' {
+            Write-Host @"
+Usage: install.ps1 [OPTIONS]
+
+OPTIONS:
+  --source=gitlab     (默认) 从公司 GitLab 装 (SSH，Windows 走 Git Bash)
+  --source=github     从 GitHub 公网装 (HTTPS)
+  --target=PATH       自定义本地 clone 路径
+  --repo=URL          覆盖 clone URL
+  --branch=NAME       覆盖分支
+  --subdir=PATH       覆盖子目录
+
+ENVIRONMENT:
+  MPDEV_SOURCE=gitlab|github
+  MPDEV_TARGET=PATH
+"@
+            exit 0
+        }
+        default { Write-Host "❌ 未知参数: $a" -ForegroundColor Red; exit 1 }
+    }
+}
+
+# 选 URL/branch/subdir
+switch ($SourceType) {
+    'gitlab' {
+        $RepoUrl = if ($RepoOverride) { $RepoOverride } else { $SourceGitlabUrl }
+        $Branch  = if ($BranchOverride) { $BranchOverride } else { $SourceGitlabBranch }
+        $Subdir  = if ($null -ne $SubdirOverride) { $SubdirOverride } else { $SourceGitlabSubdir }
+    }
+    'github' {
+        $RepoUrl = if ($RepoOverride) { $RepoOverride } else { $SourceGithubUrl }
+        $Branch  = if ($BranchOverride) { $BranchOverride } else { $SourceGithubBranch }
+        $Subdir  = if ($null -ne $SubdirOverride) { $SubdirOverride } else { $SourceGithubSubdir }
+    }
+    default {
+        Write-Host "❌ 未知 source: $SourceType (合法: gitlab / github)" -ForegroundColor Red
+        exit 1
+    }
+}
 
 function Die  ($m) { Write-Host "[ERROR] $m" -ForegroundColor Red; exit 1 }
 function Info ($m) { Write-Host "[INFO]  $m" -ForegroundColor Cyan }
@@ -36,21 +99,33 @@ if (Test-Path $Target) {
     else { Die '已取消' }
 }
 
+# 提示 GitLab 用户先接受 SSH 主机指纹
+if ($SourceType -eq 'gitlab') {
+    Info "GitLab 源需要 SSH 鉴权。Windows 请先在 Git Bash 跑: ssh -T git@10.173.28.211"
+    Info "若 SSH 未配，安装会失败。"
+}
+
 # clone
-Info '克隆 superdev 仓库'
+Info "克隆 source=$SourceType branch=$Branch"
 $tmpName = 'mpdev-' + [guid]::NewGuid().ToString('N').Substring(0,8)
 $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) $tmpName
 New-Item -ItemType Directory -Path $Tmp | Out-Null
 
 try {
-    & git clone --depth=1 $RepoUrl (Join-Path $Tmp 'superdev')
+    & git clone --depth=1 --branch $Branch $RepoUrl (Join-Path $Tmp 'repo')
     if ($LASTEXITCODE -ne 0) { Die 'git clone 失败' }
 
-    $SuiteRoot = Join-Path $Tmp "superdev/$Subdir"
+    $SuiteRoot = if ($Subdir) { Join-Path $Tmp "repo/$Subdir" } else { Join-Path $Tmp 'repo' }
     if (-not (Test-Path $SuiteRoot)) { Die "$SuiteRoot 不存在" }
 
     New-Item -ItemType Directory -Force -Path (Split-Path $Target -Parent) | Out-Null
-    Copy-Item -Path $SuiteRoot -Destination $Target -Recurse -Force
+    if ($Subdir) {
+        Copy-Item -Path $SuiteRoot -Destination $Target -Recurse -Force
+    } else {
+        # 仓根即 plugin：拷内容
+        New-Item -ItemType Directory -Force -Path $Target | Out-Null
+        Copy-Item -Path (Join-Path $SuiteRoot '*') -Destination $Target -Recurse -Force
+    }
 
     $manifest = Join-Path $Target '.claude-plugin/marketplace.json'
     if (-not (Test-Path $manifest)) { Die 'marketplace.json 缺失' }
@@ -77,7 +152,6 @@ Write-Host "升级:    $Target/docs/upgrade-guide.md"
 Write-Host "排错:    $Target/docs/troubleshooting.md"
 
 # hooks .sh 文件 LF 行尾保护（v2.1.0+）
-# Windows git autocrlf 可能把 .sh 转 CRLF，bash 解析含 shebang 的 .sh 会失败
 if (Test-Path (Join-Path $Target 'hooks')) {
     foreach ($f in (Get-ChildItem -Path (Join-Path $Target 'hooks') -Filter '*.sh').FullName) {
         $content = [System.IO.File]::ReadAllText($f) -replace "`r`n", "`n"
