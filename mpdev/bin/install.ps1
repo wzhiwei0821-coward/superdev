@@ -92,51 +92,62 @@ if (-not (Test-Path "$HOME/.claude")) {
     if ($ans -notmatch '^[Yy]$') { Die '已取消' }
 }
 
+# clone-first 支持：target 已含 .git → 跳过 clone，仅 git pull 刷新
+$targetHasGit = (Test-Path (Join-Path $Target '.git'))
+
 if (Test-Path $Target) {
-    Info "$Target 已存在"
-    $ans = Read-Host "覆盖（git pull）/取消？(y/N)"
-    if ($ans -match '^[Yy]$') { Push-Location $Target; & git pull; Pop-Location }
-    else { Die '已取消' }
+    if ($targetHasGit) {
+        Info "$Target 已是 git 仓（clone-first 模式），跳过 clone，仅 git pull"
+        Push-Location $Target
+        try { & git pull --ff-only 2>&1 | Select-Object -Last 3 } finally { Pop-Location }
+    } else {
+        Info "$Target 已存在（非 git 仓）"
+        $ans = Read-Host "覆盖（清空后重 clone）/取消？(y/N)"
+        if ($ans -notmatch '^[Yy]$') { Die '已取消' }
+        Remove-Item -Recurse -Force $Target
+    }
 }
 
 # 提示 GitLab 用户先接受 SSH 主机指纹
-if ($SourceType -eq 'gitlab') {
+if ($SourceType -eq 'gitlab' -and -not $targetHasGit) {
     Info "GitLab 源需要 SSH 鉴权。Windows 请先在 Git Bash 跑: ssh -T git@10.173.28.211"
-    Info "若 SSH 未配，安装会失败。"
+    Info "若 SSH 未配，clone 会失败。"
 }
 
-# clone
-Info "克隆 source=$SourceType branch=$Branch"
-$tmpName = 'mpdev-' + [guid]::NewGuid().ToString('N').Substring(0,8)
-$Tmp = Join-Path ([System.IO.Path]::GetTempPath()) $tmpName
-New-Item -ItemType Directory -Path $Tmp | Out-Null
+# clone（仅当 target 不含 .git 时执行）
+if (-not $targetHasGit) {
+    Info "克隆 source=$SourceType branch=$Branch"
+    $tmpName = 'mpdev-' + [guid]::NewGuid().ToString('N').Substring(0,8)
+    $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) $tmpName
+    New-Item -ItemType Directory -Path $Tmp | Out-Null
 
-try {
-    & git clone --depth=1 --branch $Branch $RepoUrl (Join-Path $Tmp 'repo')
-    if ($LASTEXITCODE -ne 0) { Die 'git clone 失败' }
+    try {
+        & git clone --depth=1 --branch $Branch $RepoUrl (Join-Path $Tmp 'repo')
+        if ($LASTEXITCODE -ne 0) { Die 'git clone 失败' }
 
-    $SuiteRoot = if ($Subdir) { Join-Path $Tmp "repo/$Subdir" } else { Join-Path $Tmp 'repo' }
-    if (-not (Test-Path $SuiteRoot)) { Die "$SuiteRoot 不存在" }
+        $SuiteRoot = if ($Subdir) { Join-Path $Tmp "repo/$Subdir" } else { Join-Path $Tmp 'repo' }
+        if (-not (Test-Path $SuiteRoot)) { Die "$SuiteRoot 不存在" }
 
-    New-Item -ItemType Directory -Force -Path (Split-Path $Target -Parent) | Out-Null
-    if ($Subdir) {
-        Copy-Item -Path $SuiteRoot -Destination $Target -Recurse -Force
-    } else {
-        # 仓根即 plugin：拷内容
-        New-Item -ItemType Directory -Force -Path $Target | Out-Null
-        Copy-Item -Path (Join-Path $SuiteRoot '*') -Destination $Target -Recurse -Force
+        New-Item -ItemType Directory -Force -Path (Split-Path $Target -Parent) | Out-Null
+        if ($Subdir) {
+            Copy-Item -Path $SuiteRoot -Destination $Target -Recurse -Force
+        } else {
+            New-Item -ItemType Directory -Force -Path $Target | Out-Null
+            Copy-Item -Path (Join-Path $SuiteRoot '*') -Destination $Target -Recurse -Force
+        }
+    } finally {
+        Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
     }
-
-    $manifest = Join-Path $Target '.claude-plugin/marketplace.json'
-    if (-not (Test-Path $manifest)) { Die 'marketplace.json 缺失' }
-    Ok "$Target 就绪"
-
-    $verFile = Join-Path $Target 'VERSION'
-    $Version = if (Test-Path $verFile) { (Get-Content $verFile -Raw).Trim() } else { 'unknown' }
-    Info "mpdev v$Version"
-} finally {
-    Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
 }
+
+# 验证 + 版本
+$manifest = Join-Path $Target '.claude-plugin/marketplace.json'
+if (-not (Test-Path $manifest)) { Die 'marketplace.json 缺失' }
+Ok "$Target 就绪"
+
+$verFile = Join-Path $Target 'VERSION'
+$Version = if (Test-Path $verFile) { (Get-Content $verFile -Raw).Trim() } else { 'unknown' }
+Info "mpdev v$Version"
 
 # 引导
 Write-Host ''

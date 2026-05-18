@@ -56,28 +56,54 @@ ssh -T git@10.173.28.211
 
 ## 1. 安装（30 秒）
 
-**内网（默认，从 GitLab）**：
+### 1A. 内网用户 — clone-first（GitLab 私有仓）
+
+> GitLab 私有仓的 HTTP raw 端点不接受未认证请求，所以无法 curl one-liner，必须走 SSH 协议 clone。前置：[§0 SSH key 已配](#0-前置配-ssh-key仅内网用户首次)。
+
+**Linux / macOS / Git Bash**：
 
 ```bash
-bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
+bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 ```
 
-**外网（GitHub）**：
+**Windows PowerShell**：
+
+```powershell
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git $env:USERPROFILE\dev\mpdev
+powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\dev\mpdev\bin\install.ps1 --target=$env:USERPROFILE\dev\mpdev
+```
+
+install 脚本检测到 `$target/.git` 存在时会跳过 clone，仅做 `git pull` + BOM 自检 + hook chmod。
+
+### 1B. 外网用户 — curl one-liner（GitHub 公开仓）
+
+**Linux / macOS / Git Bash**：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 ```
 
-也可以在已 clone 的本地仓跑 `bash bin/install.sh` 或 `bash bin/install.sh --source=github`。
+**Windows PowerShell**（强制 UTF-8 解码避免乱码）：
 
-脚本会引导你在 Claude Code 内跑 2 条命令：
+```powershell
+$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
+$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
+if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
+$env:MPDEV_SOURCE='github'
+iex $s
+```
+
+### 1C. 在 Claude Code 内注册并装
+
+脚本末尾会打印两条命令，复制到 Claude Code 输入框跑：
 
 ```
 /plugin marketplace add file://~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
 
-**重启 Claude Code**。完成。
+**完全重启 Claude Code**（不仅 `/clear`）。完成。
 
 ## 2. 验证（10 秒）
 

@@ -21,20 +21,30 @@
 
 ## ⚡ 5 分钟跑通
 
+### 1. 装 plugin（30 秒）
+
+**内网（clone-first，需 SSH key 已配）**：
 ```bash
-# 1. 装 plugin（30 秒）
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
+bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
+```
 
-# 内网（默认，从 GitLab；需 SSH key 配好）
-bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
-
-# 外网（GitHub）
+**外网（GitHub one-liner）**：
+```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
+```
 
-# 然后在 Claude Code 内:
+Windows PowerShell 等价命令见 [docs/quickstart.md](./docs/quickstart.md)。
+
+然后在 Claude Code 内：
+```
 /plugin marketplace add file://~/dev/mpdev
 /plugin install mpdev@mpdev
+```
 
-# 2. 任意项目内（4 分钟）
+### 2. 任意项目内（4 分钟）
+
+```
 /mpdev:understand           # 阶段 0a: 生成各模块 CLAUDE.md
 /mpdev:contracts            # 阶段 0b: 跨模块项目才需要
 /mpdev:init                 # 阶段 1: 生成项目特化 impl agent

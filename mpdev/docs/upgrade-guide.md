@@ -9,10 +9,11 @@ v2.0.0 是 BREAKING 变更：命令命名、目录结构、安装方式全变了
 ```bash
 # 1. 装 v2 plugin（全局，一次性）
 
-# 内网用户（默认，从 GitLab；需 SSH key 已配）
-bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+# 1a. 内网用户 — clone-first（GitLab 私有仓必须走 SSH）
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
+bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 
-# 或外网用户（从 GitHub）
+# 1b. 外网用户 — one-liner（GitHub 公开仓）
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 
 # 然后在 Claude Code 内:
@@ -26,6 +27,8 @@ bash ~/dev/mpdev/scripts/migrate-from-v1.sh
 # 3. 重启 Claude Code，使用新命令名
 /mpdev:fix vue 下拉框 bug    # 不再是 /mpdev-fix
 ```
+
+> Windows PowerShell 等价命令见 [quickstart.md §1](./quickstart.md#1-安装30-秒)。
 
 ---
 

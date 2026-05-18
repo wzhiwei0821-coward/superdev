@@ -27,26 +27,43 @@
 
 ## ⚡ 5 分钟跑通（v2.0.0 推荐）
 
+### 1. 装 plugin（全局一次，所有项目可用）
+
+#### 内网用户（默认，从 GitLab）— **clone-first**
+
+GitLab 是私有仓，HTTP raw 端点不接受未认证请求，必须走 SSH。前置：[SSH key 已配置](./mpdev/docs/quickstart.md#0-前置配-ssh-key仅内网用户首次)。
+
+**Linux / macOS / Git Bash**：
 ```bash
-# 1. 装 plugin（全局一次，所有项目可用）
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
+bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
+```
 
-# 内网（默认，从 GitLab；需 SSH key 配好）
-bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+**Windows PowerShell**：
+```powershell
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git $env:USERPROFILE\dev\mpdev
+powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\dev\mpdev\bin\install.ps1 --target=$env:USERPROFILE\dev\mpdev
+```
 
-# 外网（GitHub）
+#### 外网用户（GitHub 公开仓）— curl one-liner
+
+**Linux / macOS / Git Bash**：
+```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 ```
 
-**Windows PowerShell**（强制 UTF-8 解码，避免乱码）：
+**Windows PowerShell**（强制 UTF-8 解码避免乱码）：
 ```powershell
-# 默认 GitLab；切公网用 $env:MPDEV_SOURCE='github'
 $wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
 $s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
 if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
+$env:MPDEV_SOURCE='github'
 iex $s
 ```
 
-安装脚本会引导你在 Claude Code 内跑：
+### 2. 在 Claude Code 内注册并装
+
+安装脚本末尾会打印两条命令，复制到 Claude Code 输入框跑：
 ```
 /plugin marketplace add file://~/dev/mpdev
 /plugin install mpdev@mpdev
@@ -122,12 +139,13 @@ superdev/
 详见 [`mpdev/docs/upgrade-guide.md`](./mpdev/docs/upgrade-guide.md)。要点：
 
 ```bash
-# 1. 装 v2 plugin（全局，一次性）
+# 1. 装 v2 plugin（全局，一次性）— 详见上面 "5 分钟跑通" 段
 
-# 内网（默认，从 GitLab；需 SSH key 已配）
-bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+# 内网 (clone-first，SSH):
+git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
+bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 
-# 外网（从 GitHub）
+# 外网 (one-liner，HTTPS):
 bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
 
 # 后在 Claude Code 内: /plugin install mpdev@mpdev
