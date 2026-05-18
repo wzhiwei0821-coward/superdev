@@ -11,6 +11,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增命令 / agent / 探针 / flavor / dialect
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [2.1.1] — 2026-05-18
+
+### Added
+- **install.sh / install.ps1 双源支持**：
+  - 默认 GitLab 内网 (`git@10.173.28.211:robot-ai/mppm/mpdev.git` SSH, 分支 master)
+  - `--source=github` 或 `MPDEV_SOURCE=github` 切公网 GitHub HTTPS (分支 main)
+  - install.sh 新增 SSH 主机指纹自动接受（可 `--skip-ssh-keyscan` 关）
+  - 6 步结构（Step 2 新增 SSH 鉴权）
+  - `--help` 显示完整 source / target / branch / subdir / env var 用法
+- **`scripts/sync-to-gitlab.sh` 维护者同步脚本**：
+  - 在 `superdev/` 根跑，rsync `mpdev/` → GitLab 独立 mpdev 仓
+  - 支持 `--dry-run`（不 push 只看 diff）
+  - 检测 v 版本 tag 冲突时弹询问
+  - `MPDEV_GITLAB_REPO` / `MPDEV_GITLAB_BRANCH` / `MPDEV_SOURCE_DIR` env 覆盖
+
+### Notes
+- v2.1.0 用户的 `~/dev/mpdev/.git` 仍指向原 origin（不重装则 install.sh 不动它）
+- `/plugin update` 路径不变；通过 `~/dev/mpdev` 本地仓的 origin 决定升级源
+- PowerShell sync 版本不做（维护者走 Git Bash）
+
+### Notes (Internal/Maintainer)
+- GitLab 仓: http://10.173.28.211/robot-ai/mppm/mpdev
+- 发布步骤: superdev 改完 → push GitHub origin → `bash mpdev/scripts/sync-to-gitlab.sh`
+
 ## [2.1.0] — 2026-05-18
 
 ### Added
