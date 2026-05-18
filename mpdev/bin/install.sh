@@ -99,7 +99,7 @@ echo "  📦 mpdev v$VERSION"
 
 # ---- 引导 ----
 echo ""
-echo "▶ Step 4/4: 在 Claude Code 内完成 plugin 注册"
+echo "▶ Step 4/5: 在 Claude Code 内完成 plugin 注册"
 echo ""
 cat <<EOF
 现在请打开 Claude Code，按顺序输入：
@@ -122,6 +122,30 @@ cat <<EOF
   故障排查:    $TARGET/docs/troubleshooting.md
 
 EOF
+
+# ---- BOM 自检（v2.0.1+）----
+# 修复 T42 audit bug：中文 Windows 上无 BOM 的 .ps1 会被 GBK 解码 → 整个文件挂
+echo ""
+echo "▶ Step 5/5: 校验 .ps1 文件 BOM"
+fixed=0
+# 用 find -print0 + while read -d '' 处理路径含空格的情况
+while IFS= read -r -d '' f; do
+  # 读前 3 字节
+  bom=$(head -c 3 "$f" | od -An -tx1 | tr -d ' \n')
+  if [ "$bom" != "efbbbf" ]; then
+    # 缺 BOM，补上：写 EF BB BF + 原内容
+    tmp="$(mktemp)"
+    printf '\xef\xbb\xbf' > "$tmp"
+    cat "$f" >> "$tmp"
+    mv "$tmp" "$f"
+    fixed=$((fixed + 1))
+  fi
+done < <(find "$TARGET" -name '*.ps1' -print0 2>/dev/null)
+if [ $fixed -gt 0 ]; then
+  echo "  ⚠️  补充了 $fixed 个 .ps1 文件的 UTF-8 BOM（可能源仓未加 BOM）"
+else
+  echo "  ✅ 所有 .ps1 文件 BOM 完整"
+fi
 
 echo "✅ 安装完成"
 exit 0
