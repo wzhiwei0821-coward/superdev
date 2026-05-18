@@ -11,6 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增命令 / agent / 探针 / flavor / dialect
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [2.1.0] — 2026-05-18
+
+### Added
+- **3 个 hooks**（位于 `${CLAUDE_PLUGIN_ROOT}/hooks/`）:
+  - **SessionStart** (`hooks/session-start.sh`): 启动时自动检测项目里所有 CLAUDE.md，提取「## 技术栈」节摘要注入 Claude 上下文。省去手工说明项目背景。
+  - **UserPromptSubmit** (`hooks/inject-keyword-hint.sh`): 用户输入含 7 种模式关键词时（"修 bug" / "新需求" / "理解项目" / "启动服务" / "写测试" / "检查契约" / "生成 commit"），systemMessage 提示对应 `/mpdev:*` 命令。
+  - **SubagentStop** (`hooks/post-subagent-check.sh`): impl agent 输出 `cross_module_issue` 字段非 null 时，additionalContext 提示跨模块影响 + 启发式抽出目标模块名建议下一步。
+- **`MPDEV_NO_HOOKS=1` 一开关**全禁所有 hook（适合 CI / 噪声敏感场景）
+- `hooks/_lib.sh` 共享工具（禁用检查 / 项目根定位 / YAML 解析）
+- `docs/troubleshooting.md` 新增 hook 章节
+
+### Changed
+- `plugin.json` 新增 `"hooks": "./hooks/hooks.json"` 字段
+- `install.sh` 末尾 chmod +x hooks/*.sh
+- `install.ps1` 末尾把 .sh 行尾从 CRLF 转 LF（防 Windows git autocrlf 引入 \r\n 破坏 shebang）
+
+### Notes
+- hook 脚本为 bash；Windows 用户需 Git Bash for Windows
+- v2.0.x 用户 `/plugin update` 直接拉到 v2.1.0
+- 3 个 hook 全 fail-silent + 3-5 秒超时
+- hooks 全部只读（不写项目数据）
+
+### 未做（推迟到 v2.2+）
+- PostToolUse(git commit) 自动归档 — 与 /mpdev:commit 重叠分析未完成
+- PreToolUse(git push) 调 /mpdev:check — 高侵入，需 opt-in 设计
+- PostToolUse(Edit/Write) doc-refresher — 需 batch 机制
+- PowerShell 原生 hook 支持（.ps1）
+- 项目级 `.claude/.mpdev-hooks.yml` 细粒度开关
+
 ## [2.0.1] — 2026-05-18
 
 ### Fixed
