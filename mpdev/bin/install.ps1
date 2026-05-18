@@ -76,6 +76,15 @@ Write-Host "文档:    $Target/docs/quickstart.md"
 Write-Host "升级:    $Target/docs/upgrade-guide.md"
 Write-Host "排错:    $Target/docs/troubleshooting.md"
 
+# hooks .sh 文件 LF 行尾保护（v2.1.0+）
+# Windows git autocrlf 可能把 .sh 转 CRLF，bash 解析含 shebang 的 .sh 会失败
+if (Test-Path (Join-Path $Target 'hooks')) {
+    foreach ($f in (Get-ChildItem -Path (Join-Path $Target 'hooks') -Filter '*.sh').FullName) {
+        $content = [System.IO.File]::ReadAllText($f) -replace "`r`n", "`n"
+        [System.IO.File]::WriteAllText($f, $content, (New-Object System.Text.UTF8Encoding $false))
+    }
+}
+
 # BOM 自检（v2.0.1+）
 Write-Host ''
 $utf8Bom = New-Object System.Text.UTF8Encoding $true
