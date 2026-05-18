@@ -696,7 +696,7 @@ Java-Impl                                       │
 ### 7.4 模板体系
 
 ```
-.claude/templates/
+${CLAUDE_PLUGIN_ROOT}/templates/    （v2 plugin 自带，路径示意）
 ├── impl-java.tmpl           Java Impl 通用工作流 + {placeholder}
 ├── impl-python.tmpl         Python Impl 通用工作流 + {placeholder}
 ├── impl-vue.tmpl            前端 Impl 通用工作流 + {placeholder}
@@ -718,7 +718,7 @@ Java-Impl                                       │
 - `/mpdev:init` 自动识别项目 DB 引擎 → 选对应 dialect → 注入 dba.tmpl 生成 `agents/dba.md`
 - 未覆盖的 DB（如 Oracle / TiDB / OceanBase / SQL Server）兜底用 mysql 方言，在生成的 dba.md 顶部加"待人工补差异"注释
 
-**维护文档**：[`.claude/templates/dialects/README.md`](./templates/dialects/README.md) —— 规范说明 + 添加新 dialect 的 step-by-step 指南 + 现有覆盖清单 + 待支持 DB 建议。
+**维护文档**：[`${CLAUDE_PLUGIN_ROOT}/templates/dialects/README.md`](../templates/dialects/README.md) —— 规范说明 + 添加新 dialect 的 step-by-step 指南 + 现有覆盖清单 + 待支持 DB 建议。
 
 **Tester 模板的双层体系**（同款思路）：
 - **tester.tmpl** 定义通用框架（ISTQB 5 阶段、IEEE 829 文档、6 种用例设计技术、3 种工作模式）—— 285 行

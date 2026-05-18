@@ -95,7 +95,7 @@ dba.tmpl（骨架）                dialects/{db}.md（差异）
 | SQL Server | 新写（语法独特）|
 
 ```bash
-cp .claude/templates/dialects/mysql.md .claude/templates/dialects/{new_db}.md
+cp ${CLAUDE_PLUGIN_ROOT}/templates/dialects/mysql.md ${CLAUDE_PLUGIN_ROOT}/templates/dialects/{new_db}.md
 ```
 
 ### Step 2：修改 yaml 元数据
@@ -113,10 +113,10 @@ cp .claude/templates/dialects/mysql.md .claude/templates/dialects/{new_db}.md
 - **updated_at 自动更新**（原生 ON UPDATE / Trigger）
 - **批量 SQL 方言**（ROWNUM / LIMIT / CTE + UPDATE FROM）
 
-### Step 4：在 mpdev-init.md 的 Step 7.5.2 表格加一行
+### Step 4：在 init.md 的 Step 7.5.2 表格加一行
 
 ```markdown
-| `{新 DB 关键词}` | `.claude/templates/dialects/{new_db}.md` |
+| `{新 DB 关键词}` | `${CLAUDE_PLUGIN_ROOT}/templates/dialects/{new_db}.md` |
 ```
 
 关键词用于识别匹配。多个别名用 `/` 分隔。
@@ -125,11 +125,11 @@ cp .claude/templates/dialects/mysql.md .claude/templates/dialects/{new_db}.md
 
 ```bash
 # 确认 9 个 BLOCK 都在
-grep -c "<!-- BLOCK:" .claude/templates/dialects/{new_db}.md
+grep -c "<!-- BLOCK:" ${CLAUDE_PLUGIN_ROOT}/templates/dialects/{new_db}.md
 # 应输出 18（9 个开始 + 9 个结束）
 
 # 确认 7 个 yaml 字段都在
-sed -n '/^```yaml$/,/^```$/p' .claude/templates/dialects/{new_db}.md \
+sed -n '/^```yaml$/,/^```$/p' ${CLAUDE_PLUGIN_ROOT}/templates/dialects/{new_db}.md \
   | grep -c '^[a-z_]*:'
 # 应输出 >= 7
 ```

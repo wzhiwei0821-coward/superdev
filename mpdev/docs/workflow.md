@@ -547,9 +547,9 @@ test-executor 跑测试 → fail 用例 → 10-test-incidents.md (status=open)
 
 ### 2. 添加新数据库方言
 
-参考 [`.claude/templates/dialects/README.md`](./templates/dialects/README.md) 的 §3 "添加新 dialect"。完整 step-by-step 在那里，本文件不重复。
+参考 [`${CLAUDE_PLUGIN_ROOT}/templates/dialects/README.md`](../templates/dialects/README.md) 的 §3 "添加新 dialect"。完整 step-by-step 在那里，本文件不重复。
 
-简短流程：复制现有 dialect 作骨架 → 改 yaml 元数据 → 改 9 个 BLOCK → 在 `mpdev-init.md` 的 Step 8.2 表格加识别行。
+简短流程：复制现有 dialect 作骨架 → 改 yaml 元数据 → 改 9 个 BLOCK → 在 `init.md` 的 Step 8.2 表格加识别行。
 
 ### 3. 添加新测试 flavor（项目类型）
 
