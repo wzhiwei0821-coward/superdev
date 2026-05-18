@@ -1,5 +1,17 @@
 # mpdev-suite
 
+> ⚠️ **维护模式（v1.x，将于 2026-11-15 归档）**
+>
+> mpdev v2.0.0 已发布为 [Claude Code Plugin](../mpdev/)，**新用户请直接装 v2**：
+> ```
+> bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+> ```
+> 详见 [v1 → v2 升级指南](../mpdev/docs/upgrade-guide.md)。
+>
+> 本 README 描述的是 v1.x 用法（项目级 `.claude/` 复制模式），半年内仅修关键 bug。
+
+---
+
 > **多模块 AI 协同开发框架** — 9 个 slash 命令 × 13 个 AI agent，覆盖"理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维"全生命周期。
 
 本仓库是 mpdev 套件的**分发源**。各项目通过 `install.sh` 一键拉取，独立运行不依赖本仓库。
