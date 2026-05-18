@@ -55,6 +55,20 @@ bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/
 
 ---
 
+## 3 个 Hooks（v2.1.0+）
+
+| Hook 事件 | 触发 | 作用 |
+|----------|------|------|
+| `SessionStart` | Claude Code 启动 | 扫项目 CLAUDE.md → 注入技术栈摘要给 Claude（用户不可见） |
+| `UserPromptSubmit` | 用户提交 prompt | 含 "修 bug / 新需求 / 启动服务" 等关键词时，提示对应 `/mpdev:*` 命令 |
+| `SubagentStop` | subagent 跑完 | impl agent 报 `cross_module_issue` 时，提示下一步 `/mpdev:fix <module>` |
+
+**禁用**：`export MPDEV_NO_HOOKS=1` 一开关全禁。
+
+**跨平台**：bash only；Windows 需 Git Bash for Windows。
+
+---
+
 ## 数据架构
 
 ```
