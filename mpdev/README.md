@@ -23,7 +23,13 @@
 
 ```bash
 # 1. 装 plugin（30 秒）
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh)
+
+# 内网（默认，从 GitLab；需 SSH key 配好）
+bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)
+
+# 外网（GitHub）
+bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
+
 # 然后在 Claude Code 内:
 /plugin marketplace add file://~/dev/mpdev
 /plugin install mpdev@mpdev
