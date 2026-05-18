@@ -123,6 +123,12 @@ cat <<EOF
 
 EOF
 
+# ---- hooks 可执行（v2.1.0+）----
+# hooks/*.sh 必须可执行，Claude Code 才能 invoke
+if [ -d "$TARGET/hooks" ]; then
+  chmod +x "$TARGET/hooks/"*.sh 2>/dev/null || true
+fi
+
 # ---- BOM 自检（v2.0.1+）----
 # 修复 T42 audit bug：中文 Windows 上无 BOM 的 .ps1 会被 GBK 解码 → 整个文件挂
 echo ""
