@@ -4,7 +4,7 @@
 >
 > 9 个 `/mpdev:*` 命令 + 4 个框架 agent + 5 个 runtime probe + 13 个 AI agent 模板，覆盖「理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交」全生命周期。
 
-[![version](https://img.shields.io/badge/version-2.1.1-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
+[![version](https://img.shields.io/badge/version-2.0.0-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
 
 ---
 
@@ -61,7 +61,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/
 
 ---
 
-## 3 个 Hooks（v2.1.0+）
+## 3 个 Hooks
 
 | Hook 事件 | 触发 | 作用 |
 |----------|------|------|

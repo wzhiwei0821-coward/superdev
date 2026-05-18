@@ -125,17 +125,17 @@ cd ~/dev/mpdev && git checkout <previous-sha>
 
 ---
 
-## Hooks 故障排查（v2.1.0+）
+## Hooks 故障排查
 
 ### Hook 不生效
 
 可能原因：
 
-1. **plugin 装的是 v2.0.x 版本，没 hooks**
+1. **plugin 版本太旧**
    ```bash
    cat ~/.claude/plugins/cache/mpdev/mpdev/VERSION
    ```
-   显示 < 2.1.0 → `/plugin update` 拉新版
+   显示 < 2.0.0 → `/plugin update` 拉新版
 
 2. **plugin.json 未注册 hooks**
    ```bash
@@ -150,7 +150,7 @@ cd ~/dev/mpdev && git checkout <previous-sha>
    `*.sh` 应有 `x` 权限位。缺失 → 重跑 install.sh
 
 4. **Windows 用了 cmd.exe / PowerShell 而非 Git Bash**
-   v2.1.0 hooks 都是 bash 脚本。Windows 必须装 Git for Windows，Claude Code 会用 Git Bash 执行 hook。如未装 → 装 [Git for Windows](https://gitforwindows.org/)
+   mpdev hooks 都是 bash 脚本。Windows 必须装 Git for Windows，Claude Code 会用 Git Bash 执行 hook。如未装 → 装 [Git for Windows](https://gitforwindows.org/)
 
 5. **hook 静默失败**
    bash hook 设计成 fail-silent。临时调试：
@@ -198,7 +198,7 @@ dos2unix hooks/*.sh
 for f in hooks/*.sh; do sed -i 's/\r$//' "$f"; done
 ```
 
-v2.1.0 install.ps1 自动处理这步；如果你跑的是 install.sh（Linux/Mac/Git Bash）不会出现这个问题。
+install.ps1 自动处理这步；如果你跑的是 install.sh（Linux/Mac/Git Bash）不会出现这个问题。
 
 ---
 
@@ -210,6 +210,6 @@ v2.1.0 install.ps1 自动处理这步；如果你跑的是 install.sh（Linux/Ma
 # 收集诊断信息
 cd ~/.claude/plugins/cache/mpdev/mpdev && cat VERSION
 ls commands/
-ls hooks/    # v2.1.0+
+ls hooks/
 /plugin list | grep mpdev
 ```

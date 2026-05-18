@@ -1,4 +1,4 @@
-﻿# mpdev Plugin 一键安装 (PowerShell, v2.1.1+)
+﻿# mpdev Plugin 一键安装 (PowerShell, v2.0.0)
 #
 # 默认从公司 GitLab 内网装 (SSH)；--source=github 切公网。
 # Windows 用户跑 GitLab 源前先 ssh -T git@10.173.28.211 接受指纹。
@@ -151,7 +151,7 @@ Write-Host "文档:    $Target/docs/quickstart.md"
 Write-Host "升级:    $Target/docs/upgrade-guide.md"
 Write-Host "排错:    $Target/docs/troubleshooting.md"
 
-# hooks .sh 文件 LF 行尾保护（v2.1.0+）
+# hooks .sh 文件 LF 行尾保护
 if (Test-Path (Join-Path $Target 'hooks')) {
     foreach ($f in (Get-ChildItem -Path (Join-Path $Target 'hooks') -Filter '*.sh').FullName) {
         $content = [System.IO.File]::ReadAllText($f) -replace "`r`n", "`n"
@@ -159,7 +159,7 @@ if (Test-Path (Join-Path $Target 'hooks')) {
     }
 }
 
-# BOM 自检（v2.0.1+）
+# BOM 自检
 Write-Host ''
 $utf8Bom = New-Object System.Text.UTF8Encoding $true
 $fixed = 0

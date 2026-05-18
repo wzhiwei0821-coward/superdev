@@ -1,8 +1,8 @@
 # superdev — mpdev 分发仓库
 
-> **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.1.1 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
+> **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.0.0 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
 
-[![mpdev version](https://img.shields.io/badge/mpdev-v2.1.1-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
+[![mpdev version](https://img.shields.io/badge/mpdev-v2.0.0-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
 
 ---
 
@@ -18,14 +18,14 @@
 
 | 通道 | 状态 | 安装方式 | 命名空间 | 适用 |
 |------|------|----------|---------|------|
-| **[mpdev/](./mpdev/) v2.1.1** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
+| **[mpdev/](./mpdev/) v2.0.0** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
 | **[mpdev-suite/](./mpdev-suite/) v1.3.1** | 🟡 维护期 | 项目级 `.claude/` 复制 | `/mpdev-fix` `/mpdev` … | v1 老项目暂不迁移者 |
 
-> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.1.1 plugin。
+> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.0.0 plugin。
 
 ---
 
-## ⚡ 5 分钟跑通（v2.1.1 推荐）
+## ⚡ 5 分钟跑通（v2.0.0 推荐）
 
 ```bash
 # 1. 装 plugin（全局一次，所有项目可用）
@@ -76,7 +76,7 @@ iex $s
 
 ```
 superdev/
-├── mpdev/                              v2.1.1 plugin（推荐）
+├── mpdev/                              v2.0.0 plugin（推荐）
 │   ├── .claude-plugin/
 │   │   ├── plugin.json                 plugin manifest
 │   │   └── marketplace.json            marketplace manifest
@@ -87,7 +87,7 @@ superdev/
 │   ├── bin/install.{sh,ps1}            plugin 一键安装（双源 GitLab/GitHub）
 │   ├── scripts/migrate-from-v1.{sh,ps1}  v1→v2 项目迁移
 │   ├── scripts/sync-to-gitlab.sh       维护者：superdev → GitLab 同步
-│   ├── VERSION                         2.1.1
+│   ├── VERSION                         2.0.0
 │   ├── CHANGELOG.md
 │   ├── LICENSE                         MIT
 │   └── README.md
@@ -184,7 +184,7 @@ iex $s
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│                v2.1.1 Plugin 架构（推荐）                          │
+│                v2.0.0 Plugin 架构（推荐）                          │
 │                                                                    │
 │  ┌──────────────────────────────────────┐                          │
 │  │  ~/.claude/plugins/cache/mpdev/      │  ← plugin 自带（只读）  │
@@ -222,17 +222,17 @@ iex $s
 
 ### v2.x 发布流程（mpdev/）
 
-1. 改 `mpdev/VERSION`（如 `2.1.1`）
-2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.1.1] — YYYY-MM-DD` 段
+1. 改 `mpdev/VERSION`（如 `2.0.0`）
+2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.0.0] — YYYY-MM-DD` 段
 3. 在 `mpdev/.claude-plugin/plugin.json` + `marketplace.json` 同步 `"version"` 字段
 4. commit + tag：
    ```bash
    git add mpdev/VERSION mpdev/CHANGELOG.md mpdev/.claude-plugin/
-   git commit -m "release: mpdev v2.1.1"
-   git tag mpdev-v2.1.1
+   git commit -m "release: mpdev v2.0.0"
+   git tag mpdev-v2.0.0
    git push origin main --tags
    ```
-5. **同步到 GitLab**（v2.1.1+ 新增）：
+5. **同步到 GitLab**（v2.0.0+ 新增）：
    ```bash
    bash mpdev/scripts/sync-to-gitlab.sh           # 真同步
    bash mpdev/scripts/sync-to-gitlab.sh --dry-run # 先 dry-run 看 diff

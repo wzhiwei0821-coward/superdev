@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# mpdev Plugin 一键安装 (v2.1.1+)
+# mpdev Plugin 一键安装 (v2.0.0)
 # ===============================
 # 默认从公司 GitLab 内网装 (SSH)；--source=github 切公网。
 #
@@ -88,7 +88,7 @@ TARGET="${TARGET/#\~/$HOME}"
 cat <<EOF
 
 ╭──────────────────────────────────────────────────────────╮
-│  mpdev v2.1.1 Plugin 安装                                  │
+│  mpdev v2.0.0 Plugin 安装                                  │
 │  多模块 AI 协同开发框架 · Claude Code Plugin              │
 ╰──────────────────────────────────────────────────────────╯
 

@@ -7,7 +7,7 @@
 
 set -e
 
-# ---- 参数（v2.0.1+）----
+# ---- 参数 ----
 AUTO_CLEAN=false
 for arg in "$@"; do
   case $arg in

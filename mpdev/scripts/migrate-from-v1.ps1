@@ -9,7 +9,7 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 
-# ---- 参数（v2.0.1+）----
+# ---- 参数 ----
 $AutoClean = $false
 foreach ($a in $args) {
     switch ($a) {

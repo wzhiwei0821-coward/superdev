@@ -4,9 +4,59 @@
 
 ---
 
+## 0. 前置：配 SSH key（仅内网用户首次）
+
+**外网用户跳过本节** — `--source=github` 走 HTTPS，不需要 SSH。
+
+**内网用户**：mpdev 默认从 GitLab `git@10.173.28.211:robot-ai/mppm/mpdev.git` 拉，需要先把本机 SSH 公钥贴到 GitLab。已配过的跑 `ssh -T git@10.173.28.211` 看到 `Welcome to GitLab, @<你>!` 就跳过本节。
+
+### 4 步配 SSH（PowerShell 示例，Git Bash 命令同名）
+
+**① 检查是否已有 key**
+
+```powershell
+Get-ChildItem -Force $env:USERPROFILE\.ssh -ErrorAction SilentlyContinue
+```
+
+有 `id_ed25519` + `id_ed25519.pub`（或 `id_rsa` + `id_rsa.pub`）→ 跳到 ③。没有 → 继续 ②。
+
+**② 生成 key**（全部按回车用默认）
+
+```powershell
+ssh-keygen -t ed25519 -C "你的标签随便填"
+```
+
+`-C` 是注释标签，可填邮箱、机器名、随便什么字符串，不参与鉴权。建议填能让你以后认出来的（如 `windows-laptop`）。
+
+**③ 复制公钥并贴到 GitLab**
+
+```powershell
+Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub | Set-Clipboard
+```
+
+浏览器开 `http://10.173.28.211/-/user_settings/ssh_keys`：
+- Key 框 `Ctrl+V`
+- Title 填刚才的标签
+- Add key
+
+**④ 验证**
+
+```powershell
+ssh -T git@10.173.28.211
+```
+
+首次问 `yes/no` 输 `yes`。期望：`Welcome to GitLab, @<你的用户名>!`
+
+> 失败排查：
+> - `Permission denied (publickey)` → ③ 公钥没贴全/贴错账号，重做 ③
+> - `Connection refused` → 不在内网，先连 VPN
+> - 仍跑不通 → 见 [troubleshooting.md](./troubleshooting.md)
+
+---
+
 ## 1. 安装（30 秒）
 
-**内网（默认，从 GitLab）**：先确认 `ssh -T git@10.173.28.211` 可通
+**内网（默认，从 GitLab）**：
 
 ```bash
 bash <(curl -fsSL http://10.173.28.211/robot-ai/mppm/mpdev/-/raw/master/bin/install.sh)

@@ -11,6 +11,7 @@
 #   MPDEV_SOURCE_DIR     覆盖本地 mpdev 子目录（默认 mpdev）
 
 set -e
+set -o pipefail
 
 GITLAB_REPO="${MPDEV_GITLAB_REPO:-git@10.173.28.211:robot-ai/mppm/mpdev.git}"
 GITLAB_BRANCH="${MPDEV_GITLAB_BRANCH:-master}"
@@ -30,7 +31,6 @@ done
 # Preflight
 [ -d "$SOURCE_DIR" ] || { echo "❌ $SOURCE_DIR/ 不存在 (是否在 superdev/ 根?)"; exit 1; }
 [ -f "$SOURCE_DIR/VERSION" ] || { echo "❌ $SOURCE_DIR/VERSION 缺失"; exit 1; }
-command -v rsync >/dev/null || { echo "❌ rsync 未安装（Mac/Linux 自带；Git Bash 需 pacman -S rsync）"; exit 1; }
 
 VERSION=$(cat "$SOURCE_DIR/VERSION")
 SUPERDEV_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
@@ -43,7 +43,14 @@ echo ""
 # Clone GitLab 仓
 TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
 echo "▶ Step 1/4: Clone GitLab 仓到临时目录"
-git clone --depth=1 --branch "$GITLAB_BRANCH" "$GITLAB_REPO" "$TMP/gitlab" 2>&1 | tail -2
+if ! git clone --depth=1 --branch "$GITLAB_BRANCH" "$GITLAB_REPO" "$TMP/gitlab"; then
+  echo ""
+  echo "❌ Clone 失败。可能原因："
+  echo "   1. SSH key 未配置 → 跑: ssh -T git@10.173.28.211"
+  echo "   2. GitLab 仓不存在 → 浏览器开 ${GITLAB_REPO%.git} 看是否 404"
+  echo "   3. 账号无权限访问 namespace"
+  exit 1
+fi
 
 # 检查版本冲突
 if (cd "$TMP/gitlab" && git tag -l "v$VERSION" | grep -q .); then
@@ -55,10 +62,14 @@ if (cd "$TMP/gitlab" && git tag -l "v$VERSION" | grep -q .); then
   esac
 fi
 
-# rsync 同步
+# 同步内容（POSIX find+cp，兼容 Git Bash 无 rsync 场景）
 echo ""
-echo "▶ Step 2/4: rsync $SOURCE_DIR/ → GitLab 临时副本"
-rsync -av --delete --exclude='.git' "$SOURCE_DIR/" "$TMP/gitlab/"
+echo "▶ Step 2/4: 同步 $SOURCE_DIR/ → GitLab 临时副本"
+# 删除 GitLab 副本里除 .git/ 外的所有内容
+find "$TMP/gitlab" -mindepth 1 -maxdepth 1 -not -name '.git' -exec rm -rf {} +
+# 复制 mpdev/ 全部内容（含隐藏文件，结尾 /. 是关键）
+cp -a "$SOURCE_DIR/." "$TMP/gitlab/"
+echo "  ✓ 已同步（$(find "$SOURCE_DIR" -type f -not -path '*/.git/*' | wc -l) 个文件）"
 
 # 提交 + tag
 echo ""
