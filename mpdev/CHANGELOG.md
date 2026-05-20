@@ -11,6 +11,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增命令 / agent / 探针 / flavor / dialect
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [2.1.0] — 2026-05-20 — 套件防漏判加固
+
+针对 F-001（UReport2 报表 P0 需求被错误 FU 化）暴露的"隐藏代码资产漏判"模式，在三处加防线：
+
+### Added
+
+- **架构师 S2.5 Resource Asset Matrix**（`templates/architect.tmpl`）
+  - 内置 20 类隐藏代码资产清单（报表模板 / 数据字典 / SQL 迁移 / DB 视图 / 种子数据 / 配置中心 / 算法模型 / 工作流 / 规则引擎 / API 契约 / 权限菜单 / MQ 拓扑 / 定时任务 / 搜索索引 / 缓存策略 / 国际化 / 静态资源 / 监控埋点 / CI 编排 / 文档资产）
+  - PRD §1 / 变更点表每一行必须在 Matrix 中至少出现一次，缺失则蓝图 fail-fast
+  - 新增 S6 AC↔Asset 预映射章节，每条 P0 AC 必须挂到 Matrix 行
+- **acceptance-reviewer 强追踪表**（`agents/acceptance-reviewer.md`）
+  - 新增 `ac_artifact_trace` 输出字段：每条 AC 必填关联 Matrix 行 + 实际产物 + 测试证据 + 用户可感知判定
+  - 重定义 Met/Partial/Missed/Untested 边界：用户看不见 = Missed（不是 Partial）；依赖链断 = Missed（不是 Untested）；"无变更跳过" = Missed（不再合法）
+- **FU 任务白名单/黑名单**（`commands/dev.md`）
+  - 白名单 `env / model / external / hw_perf`：限定环境、业务方提供物、跨团队对齐、实机性能基准
+  - 黑名单 `source / sql / template / dict / iac`：任何研发产物（含 UReport / Jasper / BPMN 等模板）必须由 implementer 输出版本化资产，不允许 FU 化
+  - 验收阶段产出黑名单类别的 FU → 自动 fail，回退 implementer
+
+### Changed
+
+- **conditional_accept 门槛收紧**：任何 P0 AC = Missed / Partial 强制 reject，不再允许 conditional 兜底
+- **Step 11 注入扩展**：acceptance-reviewer 调用时强制注入 Blueprint S2.5 + S6，缺失则拒绝验收并反推 architect
+- **Step 8 impl 注入扩展（I1）**：implementer 同时接收 §3.x（改动指令）和 S2.5 中归属本模块的资产行（资产清单），两者交叉防漏；S2.5 列了但 §3.x 未展开时 implementer 主动 fail_with_report 反推 architect。同步更新 `impl-java.tmpl` / `impl-vue.tmpl` / `impl-python.tmpl` 三个模板的"# 输入"清单
+- **Asset Matrix 扫描源降级兜底（I2）**：架构师扫描源优先 PRD §1 变更点表，PRD 无 §1 时降级为 `02-breakdown.md` 的 F1..Fn 功能点；两者都缺则反推 02-breakdown 阶段补全。覆盖精简需求 / 一句话需求场景
+
+### Why
+
+F-001 验收时 P0 AC-023（UReport 白灯列）实际未实现，但被验收 reviewer 标 ⚠️ Partial（"数据源就绪，模板未变更"），FU-2 把模板修改归到「运维操作」让运维去 `/ureport/designer` 浏览器界面手工拖列保存——绕过版本控制、绕过 CI、绕过研发评审。根因是套件用「源码 case 覆盖」作为完成判据，扫不到 `.ureport.xml` / `sys_rpt_file` 这类声明式资产。本次加固把判据从「扫源码找 case」升级为「扫 PRD 找资产」。
+
 ## [2.0.0] — 2026-05-18
 
 mpdev 首个正式发布版（Claude Code Plugin 模式）。从 mpdev-suite v1.x「项目级 `.claude/` 复制」迁移到 plugin 分发，并集成双源安装、hooks、runtime probe、维护者同步脚本等能力。

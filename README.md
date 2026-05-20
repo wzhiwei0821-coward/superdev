@@ -2,7 +2,7 @@
 
 > **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.0.0 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
 
-[![mpdev version](https://img.shields.io/badge/mpdev-v2.0.0-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
+[![mpdev version](https://img.shields.io/badge/mpdev-v2.1.0-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
 
 ---
 
@@ -18,10 +18,21 @@
 
 | 通道 | 状态 | 安装方式 | 命名空间 | 适用 |
 |------|------|----------|---------|------|
-| **[mpdev/](./mpdev/) v2.0.0** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
+| **[mpdev/](./mpdev/) v2.1.0** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
 | **[mpdev-suite/](./mpdev-suite/) v1.3.1** | 🟡 维护期 | 项目级 `.claude/` 复制 | `/mpdev-fix` `/mpdev` … | v1 老项目暂不迁移者 |
 
-> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.0.0 plugin。
+> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.1.0 plugin。
+
+### v2.1.0 — 4 层防漏判防线（新）
+
+针对真实 case（P0 报表需求被错误 FU 化）的套件加固。把判据从「扫源码找 case」升级为「扫 PRD 找资产」：
+
+- **L1 架构师 S2.5 资产矩阵**：PRD 关键词驱动的 20 类资产清单（报表模板 / 字典 / SQL 迁移 / 流程文件 / OpenAPI / i18n / 菜单 / 缓存策略等），每个变更点必须映射到具体文件路径
+- **L2 implementer 交叉核对**：S2.5 列了但 §3.x 没展开 → 主动 fail 回退架构师
+- **L3 acceptance 强追踪表**：每条 AC 必填实际产物 + 用户可感知判定；P0 Missed/Partial 强制 reject，不允许 conditional 兜底
+- **L4 FU 任务黑名单**：源码 / SQL / 模板 / 字典 / IaC 禁止 FU 化，必须 implementer 产出版本化资产
+
+详见 [`mpdev/CHANGELOG.md`](./mpdev/CHANGELOG.md) v2.1.0 段。
 
 ---
 
@@ -240,14 +251,14 @@ iex $s
 
 ### v2.x 发布流程（mpdev/）
 
-1. 改 `mpdev/VERSION`（如 `2.0.0`）
-2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.0.0] — YYYY-MM-DD` 段
+1. 改 `mpdev/VERSION`（如 `2.1.0`）
+2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.1.0] — YYYY-MM-DD` 段
 3. 在 `mpdev/.claude-plugin/plugin.json` + `marketplace.json` 同步 `"version"` 字段
 4. commit + tag：
    ```bash
    git add mpdev/VERSION mpdev/CHANGELOG.md mpdev/.claude-plugin/
-   git commit -m "release: mpdev v2.0.0"
-   git tag mpdev-v2.0.0
+   git commit -m "release: mpdev v2.1.0"
+   git tag mpdev-v2.1.0
    git push origin main --tags
    ```
 5. **同步到 GitLab**（v2.0.0+ 新增）：

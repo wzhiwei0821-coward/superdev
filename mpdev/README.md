@@ -4,7 +4,7 @@
 >
 > 9 个 `/mpdev:*` 命令 + 4 个框架 agent + 5 个 runtime probe + 13 个 AI agent 模板，覆盖「理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交」全生命周期。
 
-[![version](https://img.shields.io/badge/version-2.0.0-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
+[![version](https://img.shields.io/badge/version-2.1.0-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
 
 ---
 
@@ -16,6 +16,22 @@
 - 📦 **数据解耦**: Plugin 升级**永远不写**项目里的 `.claude/agents/`、`.claude/mpdev-runs/`、`.claude/.mpdev-*`
 - 🛡️ **运行时验证**: v1.3.0 起内置 4 个探针（DB / HTTP / Playwright / WS 静态扫描），fix 软门复现 + 验证
 - 🌐 **跨项目复用**: 一次装 plugin，所有项目里 `/mpdev:` 自动可用
+- 🧱 **4 层防漏判**（v2.1.0 新增）: PRD 关键词驱动的 20 类资产矩阵 + 强追踪表 + impl 交叉核对 + FU 黑名单，防止"隐藏代码资产"（UReport 模板 / 字典 / SQL / 流程文件等）在源码扫描中被静默跳过
+
+---
+
+## 🧱 4 层防漏判防线（v2.1.0）
+
+针对真实 case：F-001 信号灯白灯检测需求中 P0 报表需求（UReport 模板新增列）被错误判定为"运维操作"导致未实现仍走完验收。根因是套件用「源码 case 覆盖」作为完成判据，扫不到 `.ureport.xml` / `sys_rpt_file` 这类声明式资产。v2.1.0 重做判据为「**扫 PRD 找资产**」，加 4 层防线：
+
+| 层 | 触发点 | 防的漏判 |
+|---|---|---|
+| **L1 architect S2.5 资产矩阵** | PRD §1（或 02-breakdown F\*）→ 20 类资产关键词扫描 → 必填具体文件路径 | 隐藏代码资产（报表模板 / 字典 / SQL / 流程 / 规则 / OpenAPI / i18n / 菜单等）被忽略 |
+| **L2 impl 交叉核对** | S2.5 列了资产但 §3.x 未展开 → implementer 主动 fail_with_report 回 architect | 架构师在 S2.5 列了但 S3.x 忘展开 |
+| **L3 acceptance 强追踪表** | 每条 AC 必填实际产物；用户不可感知 + P0 → 强制 Missed | 用 Partial 包装未实现，conditional_accept 兜底 P0 缺失 |
+| **L4 FU 任务黑名单** | `category ∈ {source, sql, template, dict, iac}` → 自动 reject | 研发产物被 FU 化甩到运维（如手工进 /ureport/designer 拖列保存） |
+
+详见 `templates/architect.tmpl` 的 A1-A20 资产清单和 `agents/acceptance-reviewer.md` 的判定流程。CHANGELOG v2.1.0 段有完整改造说明。
 
 ---
 

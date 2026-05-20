@@ -553,11 +553,15 @@ java / dispatch / analytics / algor → 互不依赖，并行
 
 每个 agent 注入：
 1. Blueprint §3.x（只给该模块段落，按模块名匹配）
-2. Blueprint §5（风险缓解措施——impl 作为必做 checklist）
-3. 契约变更摘要 Part 2
-4. 对应模块 CLAUDE.md 相关段落
-5. **Step 3 中 `involved_modules` 包含本模块的所有 F\* 的 AC**（从 00.5 抽取，让 impl 的自测用例直接对应 AC；T3 "覆盖场景"每条对应一条 AC）
-6. **[仅 vue-impl] 视觉资产与规格**（当 VISUAL_ASSETS 非空时）：
+2. **Blueprint S2.5 中归属本模块的资产行**（cross-check：S3.x 是改动清单，S2.5 是资产清单，两者交叉防漏）
+   - 过滤规则：`S2.5 Matrix` 中 `归属模块 == 本模块名` 且 `是否变更 == 是` 的行
+   - 注入位置：以表格形式追加到 §3.x 段后
+   - 校验约束：impl agent 必须确保 S3.x 改动覆盖了 S2.5 本模块的所有"是"行；若发现 S2.5 列了但 S3.x 没展开 → fail_with_report 反推架构师补全（不允许沉默跳过）
+3. Blueprint §5（风险缓解措施——impl 作为必做 checklist）
+4. 契约变更摘要 Part 2
+5. 对应模块 CLAUDE.md 相关段落
+6. **Step 3 中 `involved_modules` 包含本模块的所有 F\* 的 AC**（从 00.5 抽取，让 impl 的自测用例直接对应 AC；T3 "覆盖场景"每条对应一条 AC）
+7. **[仅 vue-impl] 视觉资产与规格**（当 VISUAL_ASSETS 非空时）：
    - Step 3 D 段完整内容（layout / components / colors / typography / spacing / radius / interactive_states）
    - 设计 Token（design_tokens）
    - 图片路径清单（agent 可自行 Read 图片二次核对）
@@ -762,7 +766,10 @@ Step 10 通过后（含修复循环），启动最终验收。
 1. **Step 3 需求识别清单**（功能点 F1..Fn 含 AC + NFR 表）——作为需求覆盖表的**基础清单**
 2. **用户原始需求**（一字不改：$ARGUMENTS）——作为交叉核对参考，防止识别遗漏
 3. Blueprint 全文
-4. 所有 impl 变更摘要（含完整文件路径，供 grep/read 验证）
+   - **3.1 Blueprint S2.5 Asset Matrix**（架构师产物，PRD §1 变更点 → 资产路径逐行映射）——验收追踪表必须以此为底
+   - **3.2 Blueprint S6 AC↔Asset 预映射**（架构师产物，每条 AC → Matrix 行）——用于核对实现产物是否覆盖
+   - **缺失 S2.5 / S6 时**：acceptance-reviewer 必须拒绝验收并反推 architect 补齐，**不允许自行推断**
+4. 所有 impl 变更摘要（含完整文件路径 + 资产 diff 列表，供 grep/read 验证）
 5. code-reviewer + integration-checker 最终结果
 6. **[有 VISUAL_ASSETS 时] 视觉规格 + 设计 Token + 原始图片路径清单**——用于视觉对比
 
@@ -819,6 +826,12 @@ accept             → Step 13
 conditional_accept → 呈现条件 → 用户说"修"→ 分派修复 → 重跑 acceptance / 用户说"接受"→ Step 13
 reject             → 呈现缺失项 → 轻度: 分派补充 / 重度: 回 architect
 ```
+
+**严格门槛（防止"P0 缺失被 conditional 兜底"）**：
+- 任何 **P0 AC = Missed / Partial** → 不允许 conditional_accept，**强制 reject**
+- 任何 **P0 AC = Untested 且非环境硬约束**（环境硬约束限定：实机性能 / 真实硬件 / 业务方提供物）→ 反推至 tester 补证据，暂判 reject
+- conditional_accept 仅允许：P1/P2 边界缺陷 + 环境硬约束 Untested + 真·外部依赖
+- **FU 任务类别黑名单**（acceptance-reviewer 输出的 `follow_up_tasks` 若包含 `category ∈ {source, sql, template, dict, iac}` → 自动转为 reject，要求回 implementer 完成研发产物）
 
 最多 1 轮验收修复。第 2 次仍 reject → 交给用户人工判断。
 
@@ -1461,6 +1474,15 @@ generated_at: {timestamp}
 ## 结论
 {accept / conditional_accept / reject}
 
+## 上游产物完整性校验
+| 产物 | 状态 |
+|------|------|
+| acceptance_criteria | present / missing |
+| Blueprint S2.5 Asset Matrix | present / missing |
+| Blueprint S6 AC↔Asset 预映射 | present / missing |
+
+任一 missing → **拒绝验收，反推 architect 补齐**。
+
 ## 需求覆盖
 基于 Step 3 识别清单（F1..Fn + NFR）逐项核对：
 
@@ -1470,6 +1492,20 @@ generated_at: {timestamp}
 | F2: {...} | 1.5 清单 | ☐ 未实现 | — |
 | NFR-性能: {...} | 1.5 清单 | ☑ 已实现 | {验证方式} |
 | {原文新发现的点} | $ARGUMENTS 回溯 | ⚠️ 1.5 未识别 | — |
+
+## AC↔产物强追踪表（核心，每条 AC 必填）
+
+| AC | 优先级 | S2.5 Matrix 行 | 预期产物 | 实际产物（文件 / commit / 资产 diff） | 测试证据 | 用户可感知? | 状态 | 阻塞发布? |
+|----|------|---------------|---------|------------------------------------|---------|-----------|------|----------|
+| AC-001 | P0 | PRD §X.Y | code | src/...:42 | test/...:pass | ✅ | Met | 否 |
+| AC-XXX | P0 | PRD §X.Y | asset | sys_rpt_file:tpl.ureport.xml diff | manual screenshot | ❌ | **Missed** | **是** |
+
+**判定流程**（防语义滑坡）：
+1. 无产物 + P0 → **Missed**（不论后端是否就绪）
+2. 用户/运维实际看不到 → **Missed**（不是 Partial）
+3. 依赖前置 AC 未达成 → **Missed**（不是 Untested）
+4. 测试设计有用例但执行被"无变更跳过" → **Missed**，必须补反向验证证据
+5. 仅生产环境性能 / 业务方提供物缺失 → Untested（环境硬约束才允许）
 
 ## 场景完整性
 {异常路径、边界条件、并发场景等建议}
@@ -1543,8 +1579,27 @@ generated_at: {timestamp}
 - [验收审查](./13-acceptance.md)
 - [文档刷新](./15-doc-refresh.md)（如有）
 
-## 未解决项
-{残留的 warn / conditional 条件 / 建议手动处理的项}
+## 未解决项（严格遵守 FU 任务类别清单）
+
+| # | 项 | category | 阻塞 AC | 负责 | 指南 |
+|---|----|----------|---------|------|------|
+
+**FU 任务类别白名单**（允许的 follow-up 类别）：
+- `env` — 环境配置、生产部署 checklist
+- `model` — 业务方提供的算法模型 / 训练数据
+- `external` — 跨团队对齐（多机同步白名单、安全审计、订阅人列表）
+- `hw_perf` — 实机性能基准（必须真实硬件场景）
+
+**FU 任务类别黑名单**（禁止 FU 化，必须研发产出版本化资产）：
+- `source` — 任何 .java / .py / .vue / .ts / .sql 源码变更
+- `sql` — DDL / DML / 迁移脚本 / 种子数据
+- `template` — UReport / Jasper / FineReport / BPMN / Drools 等模板文件
+- `dict` — sys_dict_data / 字典初始化
+- `iac` — Dockerfile / K8s manifest / Helm / Terraform / CI/CD pipeline
+
+**若验收阶段产出的 FU 任务命中黑名单 → Step 13 自动 fail，回退到 implementer 阶段完成研发产物，不允许通过 99-summary 兜底。**
+
+历史教训：UReport 报表模板被错误归到"运维操作"导致 P0 AC 未实现仍通过 conditional_accept。模板属于 `template` 类别，必须由 implementer 产出 `.ureport.xml` diff 或 `sys_rpt_file` 升级 SQL。
 
 ## 下一步建议
 - {是否执行 /mpdev:check 验证契约漂移}
