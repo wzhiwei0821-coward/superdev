@@ -1,86 +1,35 @@
 # superdev — mpdev 分发仓库
 
-> **多模块 AI 协同开发框架的分发仓库**。提供 mpdev plugin（v2.0.0 推荐）和 mpdev-suite（v1.3.x 维护期）两份并存的发布通道。
+> **多模块 AI 协同开发框架** — Claude Code Plugin
 
-[![mpdev version](https://img.shields.io/badge/mpdev-v2.1.0-blue)](./mpdev/) [![mpdev-suite version](https://img.shields.io/badge/mpdev--suite-v1.3.1-yellow)](./mpdev-suite/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
+[![mpdev version](https://img.shields.io/badge/mpdev-v2.2.0-blue)](./mpdev/) [![license](https://img.shields.io/badge/license-MIT-green)](./mpdev/LICENSE)
 
 ---
 
-## 一句话定位 🎯
+## 一句话定位
 
 **给在多模块（Java + Python + Vue / Spring Cloud / 微服务 + 前端）项目里搞 AI 协作开发的工程师**：从一句话需求 / 一个 bug，自动跑完架构 → 契约 → 实现 → 评审 → 测试 → 提交全流程，不用手动协调多个 agent。
 
-9 个 slash 命令 + 13 个 AI agent + 5 个 runtime probe，覆盖「理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交 → 运维」全生命周期。
+9 个 `/mpdev:*` 命令 + 4 个框架 agent + 13 个 AI agent 模板 + 5 个 runtime probe。
 
 ---
 
-## 两条发布通道
+## ⚡ 安装（30 秒）
 
-| 通道 | 状态 | 安装方式 | 命名空间 | 适用 |
-|------|------|----------|---------|------|
-| **[mpdev/](./mpdev/) v2.1.0** | ✅ **推荐** | Claude Code Plugin（双源：GitLab 内网 / GitHub 外网）| `/mpdev:fix` `/mpdev:dev` … | 新用户 / 想升级的老用户 |
-| **[mpdev-suite/](./mpdev-suite/) v1.3.1** | 🟡 维护期 | 项目级 `.claude/` 复制 | `/mpdev-fix` `/mpdev` … | v1 老项目暂不迁移者 |
+在 Claude Code 内直接执行：
 
-> v1.x 维护期到 **2026-11-15**，期间只修关键 bug。强烈建议新项目直接用 v2.1.0 plugin。
+```
+/plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
+/plugin install mpdev@superdev
+```
 
-### v2.1.0 — 4 层防漏判防线（新）
-
-针对真实 case（P0 报表需求被错误 FU 化）的套件加固。把判据从「扫源码找 case」升级为「扫 PRD 找资产」：
-
-- **L1 架构师 S2.5 资产矩阵**：PRD 关键词驱动的 20 类资产清单（报表模板 / 字典 / SQL 迁移 / 流程文件 / OpenAPI / i18n / 菜单 / 缓存策略等），每个变更点必须映射到具体文件路径
-- **L2 implementer 交叉核对**：S2.5 列了但 §3.x 没展开 → 主动 fail 回退架构师
-- **L3 acceptance 强追踪表**：每条 AC 必填实际产物 + 用户可感知判定；P0 Missed/Partial 强制 reject，不允许 conditional 兜底
-- **L4 FU 任务黑名单**：源码 / SQL / 模板 / 字典 / IaC 禁止 FU 化，必须 implementer 产出版本化资产
-
-详见 [`mpdev/CHANGELOG.md`](./mpdev/CHANGELOG.md) v2.1.0 段。
+**完全重启** Claude Code。更新只需 `/plugin update`。
 
 ---
 
-## ⚡ 5 分钟跑通（v2.0.0 推荐）
+## 验证
 
-### 1. 装 plugin（全局一次，所有项目可用）
-
-#### 内网用户（默认，从 GitLab）— **clone-first**
-
-GitLab 是私有仓，HTTP raw 端点不接受未认证请求，必须走 SSH。前置：[SSH key 已配置](./mpdev/docs/quickstart.md#0-前置配-ssh-key仅内网用户首次)。
-
-**Linux / macOS / Git Bash**：
-```bash
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
-```
-
-**Windows PowerShell**：
-```powershell
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git $env:USERPROFILE\dev\mpdev
-powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\dev\mpdev\bin\install.ps1 --target=$env:USERPROFILE\dev\mpdev
-```
-
-#### 外网用户（GitHub 公开仓）— curl one-liner
-
-**Linux / macOS / Git Bash**：
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
-```
-
-**Windows PowerShell**（强制 UTF-8 解码避免乱码）：
-```powershell
-$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
-$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
-if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
-$env:MPDEV_SOURCE='github'
-iex $s
-```
-
-### 2. 在 Claude Code 内注册并装
-
-安装脚本末尾会打印两条命令，复制到 Claude Code 输入框跑：
-```
-/plugin marketplace add ~/dev/mpdev
-/plugin install mpdev@mpdev
-```
-
-**完全重启 Claude Code**（不仅 `/clear`），任意项目内输入 `/mpdev:` 应见 9 个命令补全：
+输入 `/mpdev:` 应自动补全 9 个命令：
 
 ```
 /mpdev:check    /mpdev:commit  /mpdev:contracts
@@ -88,7 +37,10 @@ iex $s
 /mpdev:init     /mpdev:test    /mpdev:understand
 ```
 
-然后 4 个命令完成首次跑通：
+---
+
+## 首次使用
+
 ```
 /mpdev:understand          # 阶段 0a：生成各模块 CLAUDE.md
 /mpdev:contracts           # 阶段 0b：跨模块项目才需要
@@ -96,7 +48,7 @@ iex $s
 /mpdev:dev "需求描述"        # 阶段 2：日常开发
 ```
 
-完整文档：[`mpdev/docs/quickstart.md`](./mpdev/docs/quickstart.md)
+完整文档：[mpdev/docs/quickstart.md](./mpdev/docs/quickstart.md)
 
 ---
 
@@ -104,73 +56,33 @@ iex $s
 
 ```
 superdev/
-├── mpdev/                              v2.0.0 plugin（推荐）
+├── marketplace.json               GitHub marketplace 入口
+├── mpdev/                         v2.2.0 plugin
 │   ├── .claude-plugin/
-│   │   ├── plugin.json                 plugin manifest
-│   │   └── marketplace.json            marketplace manifest
-│   ├── commands/                       9 个 /mpdev:* 命令
-│   ├── templates/                      模板（.tmpl + dialects + test-flavors + understand + runtime-probe）
-│   ├── agents/                         4 个框架级 shared agent
-│   ├── docs/                           quickstart / upgrade-guide / troubleshooting / MPDev-Scheme / workflow
-│   ├── bin/install.{sh,ps1}            plugin 一键安装（双源 GitLab/GitHub）
-│   ├── scripts/migrate-from-v1.{sh,ps1}  v1→v2 项目迁移
-│   ├── scripts/sync-to-gitlab.sh       维护者：superdev → GitLab 同步
-│   ├── VERSION                         2.0.0
-│   ├── CHANGELOG.md
-│   ├── LICENSE                         MIT
-│   └── README.md
-│
-├── mpdev-suite/                        v1.3.x 维护期（旧用户）
-│   ├── .claude/                        套件本体（install.sh 拷贝这里）
-│   │   ├── commands/                   9 个 /mpdev-* slash 命令
-│   │   ├── templates/                  含 runtime-probe（v1.3.0 新增）
-│   │   ├── mpdev-runs/INDEX.md
-│   │   ├── MPDev-Scheme.md
-│   │   ├── mpdev-suite-workflow.md
-│   │   └── README.md
+│   │   ├── plugin.json
+│   │   └── marketplace.json
+│   ├── commands/                  9 个 /mpdev:* 命令
+│   ├── agents/                    4 个框架 agent
+│   ├── templates/                 模板（dialects / test-flavors / runtime-probe）
+│   ├── hooks/                     3 个 Session/UserPrompt/SubagentStop hooks
+│   ├── docs/                      quickstart / upgrade-guide / troubleshooting
+│   ├── bin/install.{sh,ps1}       一键安装
 │   ├── scripts/
-│   │   ├── install.{sh,ps1}            v1 首次安装
-│   │   ├── update.{sh,ps1}             v1 升级
-│   │   └── pack.sh
-│   ├── VERSION                         1.3.1
+│   │   ├── migrate-from-v1.{sh,ps1}  v1→v2 项目迁移
+│   │   └── fix-v2.1.168.{sh,ps1}    v2.1.0 缓存修复
 │   ├── CHANGELOG.md
-│   └── README.md                       含 v2 deprecation 横幅
-│
-├── docs/superpowers/                   spec/plan 设计文档（开发者参考）
-│   ├── specs/
-│   └── plans/
-│
-└── README.md                           本文件
+│   ├── LICENSE (MIT)
+│   └── README.md
+└── README.md                      本文件
 ```
 
 ---
 
 ## 从 v1 升级到 v2
 
-详见 [`mpdev/docs/upgrade-guide.md`](./mpdev/docs/upgrade-guide.md)。要点：
+详见 [mpdev/docs/upgrade-guide.md](./mpdev/docs/upgrade-guide.md)。
 
-```bash
-# 1. 装 v2 plugin（全局，一次性）— 详见上面 "5 分钟跑通" 段
-
-# 内网 (clone-first，SSH):
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
-
-# 外网 (one-liner，HTTPS):
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
-
-# 后在 Claude Code 内: /plugin install mpdev@mpdev
-
-# 2. 在每个 v1 项目根跑迁移脚本
-cd /path/to/old-v1-project
-bash ~/dev/mpdev/scripts/migrate-from-v1.sh
-# Windows: powershell -File ~/dev/mpdev/scripts/migrate-from-v1.ps1
-
-# 3. 完全重启 Claude Code 后用新命令名
-/mpdev:fix vue 下拉框 bug    # 不再是 /mpdev-fix
-```
-
-**命令重命名映射**：
+命令重命名映射：
 
 | v1.x | v2.x |
 |------|------|
@@ -184,110 +96,23 @@ bash ~/dev/mpdev/scripts/migrate-from-v1.sh
 | `/mpdev-commit` | `/mpdev:commit` |
 | `/mpdev-contracts` | `/mpdev:contracts` |
 
-**项目数据完全保留**（不需要迁移）：`.claude/agents/`、`.claude/mpdev-runs/`、`.claude/.mpdev-env-state.yml`、`.claude/.mpdev-runtime-creds.yml`、`.claude-notes/`、`CLAUDE.md`。
-
 ---
 
-## v1.x 安装（老项目使用）
+## 发布新版本
 
-⚠️ 仅当你不想迁移到 v2 时使用。新项目请用 v2。
-
-**Linux / macOS / Git Bash：**
-```bash
-curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.sh | bash
-```
-
-**Windows PowerShell：**
-```powershell
-$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
-$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev-suite/scripts/install.ps1')
-if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
-iex $s
-```
-
-详见 [`mpdev-suite/README.md`](./mpdev-suite/README.md)。
-
----
-
-## v2 vs v1 — 数据架构
-
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                v2.0.0 Plugin 架构（推荐）                          │
-│                                                                    │
-│  ┌──────────────────────────────────────┐                          │
-│  │  ~/.claude/plugins/cache/mpdev/      │  ← plugin 自带（只读）  │
-│  │  ├── commands/  9 个                  │     全局一次安装        │
-│  │  ├── templates/                       │     所有项目共享        │
-│  │  ├── agents/    4 个框架 agent        │                        │
-│  │  └── docs/                            │                        │
-│  └──────────────────────┬───────────────┘                          │
-│                         │ ${CLAUDE_PLUGIN_ROOT}                    │
-│                         ▼                                          │
-│  ┌──────────────────────────────────────┐                          │
-│  │  <project>/.claude/                  │  ← 项目数据（git 管理） │
-│  │  ├── agents/                         │     plugin 永不写入     │
-│  │  ├── mpdev-runs/                     │                        │
-│  │  ├── .mpdev-env-state.yml            │                        │
-│  │  └── .mpdev-runtime-creds.yml        │     gitignored         │
-│  └──────────────────────────────────────┘                          │
-└───────────────────────────────────────────────────────────────────┘
-
-┌───────────────────────────────────────────────────────────────────┐
-│                v1.x 项目级 .claude/ 复制（维护期）                  │
-│                                                                    │
-│  <project>/.claude/                                                │
-│  ├── commands/    框架文件 (每个项目一份)                          │
-│  ├── templates/   框架文件 (每个项目一份)                          │
-│  ├── agents/      项目数据                                         │
-│  ├── mpdev-runs/  项目数据                                         │
-│  └── .mpdev-version                                                │
-└───────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 发布新版本（维护者用）
-
-### v2.x 发布流程（mpdev/）
-
-1. 改 `mpdev/VERSION`（如 `2.1.0`）
-2. 在 `mpdev/CHANGELOG.md` 顶部加 `## [2.1.0] — YYYY-MM-DD` 段
-3. 在 `mpdev/.claude-plugin/plugin.json` + `marketplace.json` 同步 `"version"` 字段
-4. commit + tag：
+1. 改 `mpdev/VERSION`
+2. 更新 `mpdev/CHANGELOG.md`
+3. 同步 `mpdev/.claude-plugin/plugin.json` + `marketplace.json` 版本号
+4. commit + tag + push：
    ```bash
    git add mpdev/VERSION mpdev/CHANGELOG.md mpdev/.claude-plugin/
-   git commit -m "release: mpdev v2.1.0"
-   git tag mpdev-v2.1.0
+   git commit -m "release: mpdev vX.Y.Z"
+   git tag vX.Y.Z
    git push origin main --tags
    ```
-5. **同步到 GitLab**（v2.0.0+ 新增）：
-   ```bash
-   bash mpdev/scripts/sync-to-gitlab.sh           # 真同步
-   bash mpdev/scripts/sync-to-gitlab.sh --dry-run # 先 dry-run 看 diff
-   ```
-   GitLab 仓: http://10.173.28.211/robot-ai/mppm/mpdev
-
-### v1.x patch 流程（mpdev-suite/）
-
-仅修关键 bug。改 `mpdev-suite/VERSION` + CHANGELOG，commit tag `mpdev-suite-v1.3.x`。
-
----
-
-## fork 给同事使用
-
-如果同事 fork 本套件，需要更改 `install.sh` 内的默认 URL：
-
-```bash
-# v2 plugin（推荐）
-sed -i 's|wzhiwei0821-coward/superdev|colleague/myrepo|g' \
-  mpdev/bin/install.sh mpdev/bin/install.ps1 mpdev/README.md
-```
-
-详见各子目录的 README。
 
 ---
 
 ## License
 
-MIT — 详见 [`mpdev/LICENSE`](./mpdev/LICENSE)
+MIT — 详见 [mpdev/LICENSE](./mpdev/LICENSE)

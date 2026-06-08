@@ -14,7 +14,7 @@
 
 - 👥 **目标场景**: B 端管理后台 / 机器人 IoT / 物联网平台 / 数据中台 / 算法服务
 - 📦 **数据解耦**: Plugin 升级**永远不写**项目里的 `.claude/agents/`、`.claude/mpdev-runs/`、`.claude/.mpdev-*`
-- 🛡️ **运行时验证**: v1.3.0 起内置 4 个探针（DB / HTTP / Playwright / WS 静态扫描），fix 软门复现 + 验证
+- 🛡️ **运行时验证**: 内置 4 个探针（DB / HTTP / Playwright / WS 静态扫描），fix 命令支持复现 + 验证
 - 🌐 **跨项目复用**: 一次装 plugin，所有项目里 `/mpdev:` 自动可用
 - 🧱 **4 层防漏判**（v2.1.0 新增）: PRD 关键词驱动的 20 类资产矩阵 + 强追踪表 + impl 交叉核对 + FU 黑名单，防止"隐藏代码资产"（UReport 模板 / 字典 / SQL / 流程文件等）在源码扫描中被静默跳过
 
@@ -137,16 +137,11 @@
 
 ## 升级
 
-```bash
+```
 /plugin update
 ```
 
-或手动：
-
-```bash
-cd ~/dev/mpdev && git pull
-/plugin update
-```
+自动从 GitHub 拉最新版并更新缓存。项目数据零影响。
 
 ---
 

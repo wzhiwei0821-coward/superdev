@@ -1,4 +1,4 @@
-# mpdev v2.0.0 故障排查
+# mpdev v2.2.0 故障排查
 
 按症状索引。
 
@@ -9,19 +9,23 @@
 可能原因：
 
 1. **plugin 没装成功**
-   ```bash
-   /plugin list | grep mpdev
    ```
-   没显示 → 重跑 `/plugin install mpdev@mpdev`
+   /plugin list
+   ```
+   应看到 `mpdev@superdev`。没显示 → 重装：
+   ```
+   /plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
+   /plugin install mpdev@superdev
+   ```
 
 2. **Claude Code 没重启**
    `/plugin install` 后必须**完全退出**（不只是 /clear）+ 重新打开 Claude Code
 
 3. **plugin 文件没落地**
-   ```bash
-   ls ~/.claude/plugins/cache/mpdev/mpdev/commands/
    ```
-   应见 9 个 .md 文件。没有 → marketplace add 失败，重跑 `/plugin marketplace add ~/dev/mpdev`
+   ls ~/.claude/plugins/cache/mpdev/mpdev/*/commands/
+   ```
+   应见 9 个 .md 文件。没有 → `/plugin update` 或重装
 
 ---
 

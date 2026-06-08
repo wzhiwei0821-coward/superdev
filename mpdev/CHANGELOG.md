@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Minor (1.X.0)**: 新增命令 / agent / 探针 / flavor / dialect
 - **Patch (1.0.X)**: bug 修复、文档完善、模板小调整
 
+## [2.2.0] — 2026-06-08 — Claude Code v2.1.168 兼容 + 纯 GitHub 分发
+
+### Changed
+
+- **命令 `name:` 字段加 `mpdev:` 前缀**（兼容 Claude Code v2.1.168）
+  - 9 个命令 `name: init` → `name: mpdev:init`，Claude Code v2.1.168 起不再对短名自动拼插件前缀
+- **plugin.json 新增 `commands` 数组**（显式声明，对齐 claude-hud 等正规插件）
+- **安装方式改为 GitHub marketplace**（正规 `/plugin update` 自动更新）
+  - 新增根目录 `marketplace.json`，用户直接 `/plugin marketplace add https://github.com/wzhiwei0821-coward/superdev`
+  - install.sh / install.ps1 重写：GitHub only，sparse checkout 保留 `.git`
+- **升级方式简化**：只需 `/plugin update`
+
+### Removed
+
+- **mpdev-suite/**（v1 套件整个目录，47 个文件）
+- **GitLab 内网安装支持**（install.sh / install.ps1 移除 `--source=gitlab`）
+- **`scripts/sync-to-gitlab.sh`**
+
+### Fixed
+
+- **v2.1.0 用户 `/mpdev:*` 命令失效**：提供 `fix-v2.1.168.sh` / `.ps1` 一键修复缓存
+
 ## [2.1.0] — 2026-05-20 — 套件防漏判加固
 
 针对 F-001（UReport2 报表 P0 需求被错误 FU 化）暴露的"隐藏代码资产漏判"模式，在三处加防线：
