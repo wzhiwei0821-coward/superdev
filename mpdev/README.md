@@ -35,28 +35,29 @@
 
 ---
 
-## ⚡ 5 分钟跑通
+## ⚡ 1 分钟跑通
 
 ### 1. 装 plugin（30 秒）
 
-**内网（clone-first，需 SSH key 已配）**：
+**Claude Code 内直接装（推荐，自动更新）**：
+```
+/plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
+/plugin install mpdev@superdev
+```
+然后**完全重启** Claude Code。更新只需 `/plugin update`。
+
+**内网用户（GitLab 私有仓，需 SSH key 已配）**：
 ```bash
 git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 ```
-
-**外网（GitHub one-liner）**：
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
-```
-
-Windows PowerShell 等价命令见 [docs/quickstart.md](./docs/quickstart.md)。
-
 然后在 Claude Code 内：
 ```
 /plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
+更新：`cd ~/dev/mpdev && git pull`，然后 Claude Code 内 `/plugin update`。
+
+> 安装了 v2.1.0 且 `/mpdev:*` 命令失效？[一键修复](https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/scripts/fix-v2.1.168.sh)
 
 ### 2. 任意项目内（4 分钟）
 

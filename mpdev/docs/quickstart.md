@@ -1,117 +1,42 @@
-# mpdev v2.0.0 5 分钟速览
+# mpdev v2.1.1 1 分钟速览
 
-新用户 5 分钟跑通第一个 mpdev 流程。
-
----
-
-## 0. 前置：配 SSH key（仅内网用户首次）
-
-**外网用户跳过本节** — `--source=github` 走 HTTPS，不需要 SSH。
-
-**内网用户**：mpdev 默认从 GitLab `git@10.173.28.211:robot-ai/mppm/mpdev.git` 拉，需要先把本机 SSH 公钥贴到 GitLab。已配过的跑 `ssh -T git@10.173.28.211` 看到 `Welcome to GitLab, @<你>!` 就跳过本节。
-
-### 4 步配 SSH（PowerShell 示例，Git Bash 命令同名）
-
-**① 检查是否已有 key**
-
-```powershell
-Get-ChildItem -Force $env:USERPROFILE\.ssh -ErrorAction SilentlyContinue
-```
-
-有 `id_ed25519` + `id_ed25519.pub`（或 `id_rsa` + `id_rsa.pub`）→ 跳到 ③。没有 → 继续 ②。
-
-**② 生成 key**（全部按回车用默认）
-
-```powershell
-ssh-keygen -t ed25519 -C "你的标签随便填"
-```
-
-`-C` 是注释标签，可填邮箱、机器名、随便什么字符串，不参与鉴权。建议填能让你以后认出来的（如 `windows-laptop`）。
-
-**③ 复制公钥并贴到 GitLab**
-
-```powershell
-Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub | Set-Clipboard
-```
-
-浏览器开 `http://10.173.28.211/-/user_settings/ssh_keys`：
-- Key 框 `Ctrl+V`
-- Title 填刚才的标签
-- Add key
-
-**④ 验证**
-
-```powershell
-ssh -T git@10.173.28.211
-```
-
-首次问 `yes/no` 输 `yes`。期望：`Welcome to GitLab, @<你的用户名>!`
-
-> 失败排查：
-> - `Permission denied (publickey)` → ③ 公钥没贴全/贴错账号，重做 ③
-> - `Connection refused` → 不在内网，先连 VPN
-> - 仍跑不通 → 见 [troubleshooting.md](./troubleshooting.md)
+新用户 1 分钟跑通第一个 mpdev 流程。
 
 ---
 
-## 1. 安装（30 秒）
+## 1. 安装（30 秒）— 推荐方式
 
-### 1A. 内网用户 — clone-first（GitLab 私有仓）
+**在 Claude Code 内直接装（自动更新）**：
 
-> GitLab 私有仓的 HTTP raw 端点不接受未认证请求，所以无法 curl one-liner，必须走 SSH 协议 clone。前置：[§0 SSH key 已配](#0-前置配-ssh-key仅内网用户首次)。
+```
+/plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
+/plugin install mpdev@superdev
+```
 
-**Linux / macOS / Git Bash**：
+**完全重启 Claude Code**（不仅 `/clear`）。完成。
+
+> **更新**：只需 `/plugin update`，自动从 GitHub 拉最新版。
+
+---
+
+### 备选：内网用户（GitLab 私有仓，需 SSH key）
+
+> GitLab 私有仓需先配 SSH key：`ssh -T git@10.173.28.211` 看到 `Welcome to GitLab` 即可。未配见 [troubleshooting.md](./troubleshooting.md)。
 
 ```bash
 git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
 ```
-
-**Windows PowerShell**：
-
-```powershell
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git $env:USERPROFILE\dev\mpdev
-powershell -ExecutionPolicy Bypass -File $env:USERPROFILE\dev\mpdev\bin\install.ps1 --target=$env:USERPROFILE\dev\mpdev
-```
-
-install 脚本检测到 `$target/.git` 存在时会跳过 clone，仅做 `git pull` + BOM 自检 + hook chmod。
-
-### 1B. 外网用户 — curl one-liner（GitHub 公开仓）
-
-**Linux / macOS / Git Bash**：
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
-```
-
-**Windows PowerShell**（强制 UTF-8 解码避免乱码）：
-
-```powershell
-$wc = New-Object Net.WebClient; $wc.Encoding = [Text.Encoding]::UTF8
-$s = $wc.DownloadString('https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.ps1')
-if ($s[0] -eq [char]0xFEFF) { $s = $s.Substring(1) }
-$env:MPDEV_SOURCE='github'
-iex $s
-```
-
-### 1C. 在 Claude Code 内注册并装
-
-install 脚本末尾会**直接打印** marketplace add 命令（含已解析的绝对路径），复制即可。
-不要手工拼 `file://...`，Claude Code 不收 URI scheme，只接受 `owner/repo` / `https://...` / 文件系统路径。
-
-通用形式：
-
+然后在 Claude Code 内：
 ```
 /plugin marketplace add ~/dev/mpdev
 /plugin install mpdev@mpdev
 ```
+更新：`cd ~/dev/mpdev && git pull`，然后 Claude Code 内 `/plugin update`。
 
-> **Windows 注解**：如果 Claude Code 不展开 `~`（不同版本行为不一致），就用脚本输出的绝对路径，**必须正斜杠**：
+> ⚠️ v2.1.0 用户 `/mpdev:*` 命令失效？运行修复脚本：
+> ```bash
+> bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/scripts/fix-v2.1.168.sh)
 > ```
-> /plugin marketplace add C:/Users/<你的用户名>/dev/mpdev
-> ```
-
-**完全重启 Claude Code**（不仅 `/clear`）。完成。
 
 ## 2. 验证（10 秒）
 

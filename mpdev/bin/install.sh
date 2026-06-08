@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# mpdev Plugin 一键安装 (v2.0.0)
+# mpdev Plugin 一键安装 (v2.1.1)
 # ===============================
 # 默认从公司 GitLab 内网装 (SSH)；--source=github 切公网。
 #
@@ -88,7 +88,7 @@ TARGET="${TARGET/#\~/$HOME}"
 cat <<EOF
 
 ╭──────────────────────────────────────────────────────────╮
-│  mpdev v2.0.0 Plugin 安装                                  │
+│  mpdev v2.1.1 Plugin 安装                                  │
 │  多模块 AI 协同开发框架 · Claude Code Plugin              │
 ╰──────────────────────────────────────────────────────────╯
 
@@ -155,23 +155,21 @@ echo ""
 echo "▶ Step 3/6: 克隆 mpdev (source=$SOURCE_TYPE, branch=$BRANCH)"
 
 if [ ! -d "$TARGET/.git" ]; then
-  TMP=$(mktemp -d)
-  trap "rm -rf $TMP" EXIT
-
-  if ! git clone --depth=1 --branch "$BRANCH" "$REPO_URL" "$TMP/repo" 2>&1 | tail -3; then
-    echo "❌ git clone 失败"
-    exit 3
-  fi
-
   if [ -n "$SUBDIR" ]; then
-    SUITE_ROOT="$TMP/repo/$SUBDIR"
-    [ -d "$SUITE_ROOT" ] || { echo "❌ 找不到 $SUBDIR 子目录"; exit 3; }
+    # sparse checkout: clone whole repo, keep only subdir
+    git clone --depth=1 --branch "$BRANCH" --no-checkout "$REPO_URL" "$TARGET" 2>&1 | tail -3 || { echo "❌ git clone 失败"; exit 3; }
+    cd "$TARGET"
+    git sparse-checkout init --cone 2>/dev/null || true
+    git sparse-checkout set "$SUBDIR" 2>/dev/null || git checkout "$BRANCH" -- "$SUBDIR" 2>/dev/null || { echo "❌ sparse checkout 失败"; exit 3; }
+    # Move subdir contents up (keep .git)
+    shopt -s dotglob
+    cp -r "$SUBDIR"/* . 2>/dev/null || true
+    rm -rf "$SUBDIR"
+    cd - >/dev/null
   else
-    SUITE_ROOT="$TMP/repo"
+    # Direct clone (full repo, keeps .git for git pull)
+    git clone --depth=1 --branch "$BRANCH" "$REPO_URL" "$TARGET" 2>&1 | tail -3 || { echo "❌ git clone 失败"; exit 3; }
   fi
-
-  mkdir -p "$(dirname "$TARGET")"
-  cp -r "$SUITE_ROOT" "$TARGET"
 fi
 
 [ -f "$TARGET/.claude-plugin/marketplace.json" ] || { echo "❌ marketplace.json 缺失"; exit 3; }
