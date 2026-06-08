@@ -15,5 +15,16 @@
     "contract-driven",
     "chinese",
     "workflow"
+  ],
+  "commands": [
+    "./commands/check.md",
+    "./commands/commit.md",
+    "./commands/contracts.md",
+    "./commands/dev.md",
+    "./commands/env.md",
+    "./commands/fix.md",
+    "./commands/init.md",
+    "./commands/test.md",
+    "./commands/understand.md"
   ]
 }
