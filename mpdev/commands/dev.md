@@ -1,5 +1,5 @@
 ---
-name: dev
+name: mpdev:dev
 description: 多模块开发入口 — 自然语言描述需求，系统自动编排 subagent 完成跨模块开发
 allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit
 ---

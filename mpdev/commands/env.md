@@ -1,5 +1,5 @@
 ---
-name: env
+name: mpdev:env
 description: 环境配置与启动 — 自动检测中间件需求，收集连接信息，配置并启动服务
 allowed-tools: Agent, Read, Grep, Glob, Bash, Edit, Write, AskUserQuestion
 ---

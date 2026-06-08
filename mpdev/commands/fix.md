@@ -1,5 +1,5 @@
 ---
-name: fix
+name: mpdev:fix
 description: 轻量修复 — 单 bug 或批量清单（禅道 CSV / Markdown），跳过 Architect 和 Contract 直接让 impl agent 修复
 allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion, mcp__playwright__*, mcp__mysql__*
 ---

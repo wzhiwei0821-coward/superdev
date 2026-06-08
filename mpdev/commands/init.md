@@ -1,5 +1,5 @@
 ---
-name: init
+name: mpdev:init
 description: MPDev 初始化 — 扫描项目模块，读取 CLAUDE.md，从模板生成 agent 定义和编排器
 allowed-tools: Agent, Read, Grep, Glob, Bash, Write
 ---

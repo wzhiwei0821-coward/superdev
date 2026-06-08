@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "mpdev",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "多模块 AI 协同开发框架 — 9 个 /mpdev:* 命令 + 13 个 AI agent 覆盖『理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交』全生命周期",
   "author": {
     "name": "wzhiwei0821-coward"
@@ -14,6 +14,17 @@
     "contract-driven",
     "chinese",
     "workflow"
+  ],
+  "commands": [
+    "./commands/check.md",
+    "./commands/commit.md",
+    "./commands/contracts.md",
+    "./commands/dev.md",
+    "./commands/env.md",
+    "./commands/fix.md",
+    "./commands/init.md",
+    "./commands/test.md",
+    "./commands/understand.md"
   ],
   "hooks": "./hooks/hooks.json"
 }

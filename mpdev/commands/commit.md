@@ -1,5 +1,5 @@
 ---
-name: commit
+name: mpdev:commit
 description: 提交辅助 — 扫描 git diff 自动生成中文 commit 说明，识别契约风险，用户确认后提交
 allowed-tools: Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion
 ---
