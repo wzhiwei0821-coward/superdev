@@ -14,10 +14,7 @@
       },
       "category": "dev-tools",
       "tags": ["multi-module", "ai-coding", "code-review", "contract-driven", "chinese", "workflow"],
-      "source": {
-        "source": "url",
-        "url": "https://github.com/wzhiwei0821-coward/superdev.git"
-      },
+      "source": "./",
       "homepage": "https://github.com/wzhiwei0821-coward/superdev"
     }
   ]
