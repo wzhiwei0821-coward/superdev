@@ -1,5 +1,4 @@
 ---
-name: mpdev:check
 description: 契约漂移检测 — 检查 robot-contracts 与实际代码之间的一致性
 allowed-tools: Read, Grep, Glob, Bash
 ---

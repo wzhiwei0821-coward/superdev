@@ -1,5 +1,4 @@
 ---
-name: mpdev:test
 description: 测试套件入口 — 测试计划/用例/执行/报告/UAT/缺陷管理（mpdev 生命周期阶段 2 测试专项）
 allowed-tools: Agent, Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion
 ---

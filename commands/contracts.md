@@ -1,5 +1,4 @@
 ---
-name: mpdev:contracts
 description: 契约仓库提取 — 从各模块 CLAUDE.md 交叉比对生成 robot-contracts（mpdev 生命周期阶段 0b）
 allowed-tools: Read, Grep, Glob, Bash, TodoWrite, Write, Edit, AskUserQuestion
 ---
