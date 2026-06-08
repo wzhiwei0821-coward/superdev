@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "superdev",
-  "description": "mpdev 多模块 AI 协同开发框架 — 9 个 /mpdev:* 命令覆盖全生命周期",
+  "description": "mpdev 多模块 AI 协同开发框架",
   "owner": {
     "name": "wzhiwei0821-coward"
   },
@@ -15,10 +15,9 @@
       "category": "dev-tools",
       "tags": ["multi-module", "ai-coding", "code-review", "contract-driven", "chinese", "workflow"],
       "source": {
-        "source": "git-subdir",
+        "source": "url",
         "url": "https://github.com/wzhiwei0821-coward/superdev.git",
-        "path": "mpdev",
-        "ref": "v2.2.0"
+        "path": "mpdev"
       },
       "homepage": "https://github.com/wzhiwei0821-coward/superdev"
     }
