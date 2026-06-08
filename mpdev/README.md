@@ -4,7 +4,7 @@
 >
 > 9 个 `/mpdev:*` 命令 + 4 个框架 agent + 5 个 runtime probe + 13 个 AI agent 模板，覆盖「理解项目 → 提取契约 → 框架初始化 → 开发 → 测试 → 修复 → 提交」全生命周期。
 
-[![version](https://img.shields.io/badge/version-2.1.0-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
+[![version](https://img.shields.io/badge/version-2.2.0-blue)](./VERSION) [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![claude-code](https://img.shields.io/badge/Claude%20Code-Plugin-orange)](https://docs.claude.com/en/docs/claude-code)
 
 ---
 
@@ -39,23 +39,12 @@
 
 ### 1. 装 plugin（30 秒）
 
-**Claude Code 内直接装（推荐，自动更新）**：
+在 Claude Code 内直接执行：
 ```
 /plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
 /plugin install mpdev@superdev
 ```
-然后**完全重启** Claude Code。更新只需 `/plugin update`。
-
-**内网用户（GitLab 私有仓，需 SSH key 已配）**：
-```bash
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-```
-然后在 Claude Code 内：
-```
-/plugin marketplace add ~/dev/mpdev
-/plugin install mpdev@mpdev
-```
-更新：`cd ~/dev/mpdev && git pull`，然后 Claude Code 内 `/plugin update`。
+**完全重启** Claude Code。更新只需 `/plugin update`。
 
 > 安装了 v2.1.0 且 `/mpdev:*` 命令失效？[一键修复](https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/scripts/fix-v2.1.168.sh)
 

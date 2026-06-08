@@ -80,10 +80,10 @@ Write-Host "▶ 修复 plugin.json..."
 $pj = Get-Content $pjPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $changed = $false
 
-if ($pj.version -ne "2.1.1") {
-    $pj.version = "2.1.1"
+if ($pj.version -ne "2.2.0") {
+    $pj.version = "2.2.0"
     $changed = $true
-    Write-Host "  version: → 2.1.1"
+    Write-Host "  version: → 2.2.0"
 }
 
 $cmdNames = @(

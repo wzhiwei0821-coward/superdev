@@ -87,10 +87,10 @@ with open('$PJ', 'r', encoding='utf-8') as f:
 changed = False
 
 # 补 version
-if pj.get('version') != '2.1.1':
-    pj['version'] = '2.1.1'
+if pj.get('version') != '2.2.0':
+    pj['version'] = '2.2.0'
     changed = True
-    print('  version: → 2.1.1')
+    print('  version: → 2.2.0')
 
 # 补 commands 数组
 if 'commands' not in pj:

@@ -7,18 +7,9 @@ v2.0.0 是 BREAKING 变更：命令命名、目录结构、安装方式全变了
 ## TL;DR
 
 ```bash
-# 1. 装 v2 plugin（全局，一次性）
-
-# 1a. 内网用户 — clone-first（GitLab 私有仓必须走 SSH）
-git clone git@10.173.28.211:robot-ai/mppm/mpdev.git ~/dev/mpdev
-bash ~/dev/mpdev/bin/install.sh --target=~/dev/mpdev
-
-# 1b. 外网用户 — one-liner（GitHub 公开仓）
-bash <(curl -fsSL https://raw.githubusercontent.com/wzhiwei0821-coward/superdev/main/mpdev/bin/install.sh) --source=github
-
-# 然后在 Claude Code 内:
-/plugin marketplace add ~/dev/mpdev
-/plugin install mpdev@mpdev
+# 1. 装 v2 plugin（在 Claude Code 内）
+/plugin marketplace add https://github.com/wzhiwei0821-coward/superdev
+/plugin install mpdev@superdev
 
 # 2. 在老 v1 项目根跑迁移脚本
 cd /path/to/old-project

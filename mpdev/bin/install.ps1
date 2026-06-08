@@ -1,7 +1,6 @@
-﻿# mpdev Plugin 一键安装 (PowerShell, v2.0.0)
+# mpdev Plugin 一键安装 (PowerShell, v2.2.0)
 #
-# 默认从公司 GitLab 内网装 (SSH)；--source=github 切公网。
-# Windows 用户跑 GitLab 源前先 ssh -T git@10.173.28.211 接受指纹。
+# 从 GitHub 拉取 superdev 仓库的 mpdev/ 子目录。
 #
 # Usage (推荐 — 强制 UTF-8 解码避免 ??? 乱码):
 #   $wc=New-Object Net.WebClient; $wc.Encoding=[Text.Encoding]::UTF8
@@ -15,45 +14,30 @@ try {
     $OutputEncoding = [System.Text.Encoding]::UTF8
 } catch {}
 
-# ---- Source 配置 ----
-$SourceGitlabUrl    = 'git@10.173.28.211:robot-ai/mppm/mpdev.git'
-$SourceGitlabBranch = 'master'
-$SourceGitlabSubdir = ''
-
-$SourceGithubUrl    = 'https://github.com/wzhiwei0821-coward/superdev.git'
-$SourceGithubBranch = 'main'
-$SourceGithubSubdir = 'mpdev'
-
-$SourceType = if ($env:MPDEV_SOURCE) { $env:MPDEV_SOURCE } else { 'gitlab' }
-$Target     = if ($env:MPDEV_TARGET) { $env:MPDEV_TARGET } else { Join-Path $HOME 'dev/mpdev' }
-$RepoOverride = $null
-$BranchOverride = $null
-$SubdirOverride = $null
+# ---- 配置 ----
+$RepoUrl = 'https://github.com/wzhiwei0821-coward/superdev.git'
+$Branch  = 'main'
+$Subdir  = 'mpdev'
+$Target  = if ($env:MPDEV_TARGET) { $env:MPDEV_TARGET } else { Join-Path $HOME 'dev/mpdev' }
 
 # ---- 参数 ----
 foreach ($a in $args) {
     switch -Regex ($a) {
-        '^--source=gitlab$' { $SourceType = 'gitlab' }
-        '^--source=github$' { $SourceType = 'github' }
-        '^--target=(.+)$'   { $Target = $matches[1] }
-        '^--repo=(.+)$'     { $RepoOverride = $matches[1] }
-        '^--branch=(.+)$'   { $BranchOverride = $matches[1] }
-        '^--subdir=(.+)$'   { $SubdirOverride = $matches[1] }
+        '^--target=(.+)$' { $Target = $matches[1] }
+        '^--repo=(.+)$'   { $RepoUrl = $matches[1] }
+        '^--branch=(.+)$' { $Branch = $matches[1] }
         '^(-h|--help)$' {
             Write-Host @"
 Usage: install.ps1 [OPTIONS]
 
 OPTIONS:
-  --source=gitlab     (默认) 从公司 GitLab 装 (SSH，Windows 走 Git Bash)
-  --source=github     从 GitHub 公网装 (HTTPS)
-  --target=PATH       自定义本地 clone 路径
-  --repo=URL          覆盖 clone URL
-  --branch=NAME       覆盖分支
-  --subdir=PATH       覆盖子目录
+  --target=PATH   自定义安装路径（默认 ~/dev/mpdev）
+  --repo=URL      覆盖 GitHub 仓库 URL
+  --branch=NAME   覆盖分支（默认 main）
+  -h, --help      显示此帮助
 
 ENVIRONMENT:
-  MPDEV_SOURCE=gitlab|github
-  MPDEV_TARGET=PATH
+  MPDEV_TARGET=PATH  等价 --target
 "@
             exit 0
         }
@@ -61,29 +45,12 @@ ENVIRONMENT:
     }
 }
 
-# 选 URL/branch/subdir
-switch ($SourceType) {
-    'gitlab' {
-        $RepoUrl = if ($RepoOverride) { $RepoOverride } else { $SourceGitlabUrl }
-        $Branch  = if ($BranchOverride) { $BranchOverride } else { $SourceGitlabBranch }
-        $Subdir  = if ($null -ne $SubdirOverride) { $SubdirOverride } else { $SourceGitlabSubdir }
-    }
-    'github' {
-        $RepoUrl = if ($RepoOverride) { $RepoOverride } else { $SourceGithubUrl }
-        $Branch  = if ($BranchOverride) { $BranchOverride } else { $SourceGithubBranch }
-        $Subdir  = if ($null -ne $SubdirOverride) { $SubdirOverride } else { $SourceGithubSubdir }
-    }
-    default {
-        Write-Host "❌ 未知 source: $SourceType (合法: gitlab / github)" -ForegroundColor Red
-        exit 1
-    }
-}
-
 function Die  ($m) { Write-Host "[ERROR] $m" -ForegroundColor Red; exit 1 }
 function Info ($m) { Write-Host "[INFO]  $m" -ForegroundColor Cyan }
 function Ok   ($m) { Write-Host "[OK]    $m" -ForegroundColor Green }
 
-# preflight
+# ---- 前置检查 ----
+Info "前置检查"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) { Die 'git 未安装' }
 
 if (-not (Test-Path "$HOME/.claude")) {
@@ -92,77 +59,56 @@ if (-not (Test-Path "$HOME/.claude")) {
     if ($ans -notmatch '^[Yy]$') { Die '已取消' }
 }
 
-# clone-first 支持：target 已含 .git → 跳过 clone，仅 git pull 刷新
 $targetHasGit = (Test-Path (Join-Path $Target '.git'))
-
-if (Test-Path $Target) {
-    if ($targetHasGit) {
-        Info "$Target 已是 git 仓（clone-first 模式），跳过 clone，仅 git pull"
-        Push-Location $Target
-        try { & git pull --ff-only 2>&1 | Select-Object -Last 3 } finally { Pop-Location }
-    } else {
-        Info "$Target 已存在（非 git 仓）"
-        $ans = Read-Host "覆盖（清空后重 clone）/取消？(y/N)"
-        if ($ans -notmatch '^[Yy]$') { Die '已取消' }
-        Remove-Item -Recurse -Force $Target
-    }
+if ($targetHasGit) {
+    Info "$Target 已是 git 仓，git pull 拉新..."
+    Push-Location $Target
+    try { & git pull --ff-only 2>&1 | Select-Object -Last 3 } finally { Pop-Location }
+} elseif (Test-Path $Target) {
+    Info "$Target 已存在（非 git 仓）"
+    $ans = Read-Host "覆盖（清空后重 clone）/取消？(y/N)"
+    if ($ans -notmatch '^[Yy]$') { Die '已取消' }
+    Remove-Item -Recurse -Force $Target
 }
 
-# 提示 GitLab 用户先接受 SSH 主机指纹
-if ($SourceType -eq 'gitlab' -and -not $targetHasGit) {
-    Info "GitLab 源需要 SSH 鉴权。Windows 请先在 Git Bash 跑: ssh -T git@10.173.28.211"
-    Info "若 SSH 未配，clone 会失败。"
-}
-
-# clone（仅当 target 不含 .git 时执行）
+# ---- 克隆 ----
 if (-not $targetHasGit) {
-    Info "克隆 source=$SourceType branch=$Branch"
-    $tmpName = 'mpdev-' + [guid]::NewGuid().ToString('N').Substring(0,8)
-    $Tmp = Join-Path ([System.IO.Path]::GetTempPath()) $tmpName
-    New-Item -ItemType Directory -Path $Tmp | Out-Null
+    Info "克隆 $RepoUrl (branch=$Branch)"
+    & git clone --depth=1 --branch $Branch --no-checkout $RepoUrl $Target
+    if ($LASTEXITCODE -ne 0) { Die 'git clone 失败' }
 
+    Push-Location $Target
     try {
-        & git clone --depth=1 --branch $Branch $RepoUrl (Join-Path $Tmp 'repo')
-        if ($LASTEXITCODE -ne 0) { Die 'git clone 失败' }
-
-        $SuiteRoot = if ($Subdir) { Join-Path $Tmp "repo/$Subdir" } else { Join-Path $Tmp 'repo' }
-        if (-not (Test-Path $SuiteRoot)) { Die "$SuiteRoot 不存在" }
-
-        New-Item -ItemType Directory -Force -Path (Split-Path $Target -Parent) | Out-Null
-        if ($Subdir) {
-            Copy-Item -Path $SuiteRoot -Destination $Target -Recurse -Force
-        } else {
-            New-Item -ItemType Directory -Force -Path $Target | Out-Null
-            Copy-Item -Path (Join-Path $SuiteRoot '*') -Destination $Target -Recurse -Force
-        }
-    } finally {
-        Remove-Item -Recurse -Force $Tmp -ErrorAction SilentlyContinue
-    }
+        & git sparse-checkout init --cone 2>$null
+        & git sparse-checkout set $Subdir
+        if ($LASTEXITCODE -ne 0) { Die 'sparse checkout 失败' }
+        Copy-Item -Path "$Subdir/*" -Destination . -Recurse -Force
+        Remove-Item -Recurse -Force $Subdir
+    } finally { Pop-Location }
 }
 
-# 验证 + 版本
-$manifest = Join-Path $Target '.claude-plugin/marketplace.json'
-if (-not (Test-Path $manifest)) { Die 'marketplace.json 缺失' }
+$manifest = Join-Path $Target '.claude-plugin/plugin.json'
+if (-not (Test-Path $manifest)) { Die 'plugin.json 缺失' }
 Ok "$Target 就绪"
 
+# ---- 版本 ----
 $verFile = Join-Path $Target 'VERSION'
 $Version = if (Test-Path $verFile) { (Get-Content $verFile -Raw).Trim() } else { 'unknown' }
 Info "mpdev v$Version"
 
-# 引导
+# ---- 引导 ----
 Write-Host ''
-Write-Host '现在请打开 Claude Code，按顺序输入：'
+Write-Host '现在请打开 Claude Code，执行：'
 Write-Host ''
-Write-Host "  /plugin marketplace add $($Target -replace '\\','/')" -ForegroundColor Yellow
-Write-Host '  /plugin install mpdev@mpdev' -ForegroundColor Yellow
+Write-Host '  /plugin marketplace add https://github.com/wzhiwei0821-coward/superdev' -ForegroundColor Yellow
+Write-Host '  /plugin install mpdev@superdev' -ForegroundColor Yellow
 Write-Host ''
 Write-Host '完成后完全重启 Claude Code，/mpdev: 应见 9 个命令补全。'
 Write-Host ''
 Write-Host "文档:    $Target/docs/quickstart.md"
-Write-Host "升级:    $Target/docs/upgrade-guide.md"
 Write-Host "排错:    $Target/docs/troubleshooting.md"
 
-# hooks .sh 文件 LF 行尾保护
+# ---- hooks LF 行尾保护 ----
 if (Test-Path (Join-Path $Target 'hooks')) {
     foreach ($f in (Get-ChildItem -Path (Join-Path $Target 'hooks') -Filter '*.sh').FullName) {
         $content = [System.IO.File]::ReadAllText($f) -replace "`r`n", "`n"
@@ -170,7 +116,7 @@ if (Test-Path (Join-Path $Target 'hooks')) {
     }
 }
 
-# BOM 自检
+# ---- BOM 自检 ----
 Write-Host ''
 $utf8Bom = New-Object System.Text.UTF8Encoding $true
 $fixed = 0
@@ -184,7 +130,7 @@ foreach ($f in (Get-ChildItem -Path $Target -Recurse -Filter '*.ps1').FullName) 
     }
 }
 if ($fixed -gt 0) {
-    Write-Host "⚠️ 补充了 $fixed 个 .ps1 文件的 UTF-8 BOM（可能源仓未加 BOM）" -ForegroundColor Yellow
+    Write-Host "⚠️ 补充了 $fixed 个 .ps1 文件的 UTF-8 BOM" -ForegroundColor Yellow
 } else {
     Write-Host '✅ 所有 .ps1 文件 BOM 完整' -ForegroundColor Green
 }
