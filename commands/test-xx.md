@@ -1,5 +1,0 @@
----
-description: test command
----
-
-hello

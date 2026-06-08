@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "mpdev 多模块 AI 协同开发框架 — Claude Code Plugin",
-    "version": "2.2.1"
+    "version": "2.2.2"
   },
   "plugins": [
     {
