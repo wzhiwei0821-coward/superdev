@@ -26,6 +26,5 @@
     "./commands/init.md",
     "./commands/test.md",
     "./commands/understand.md"
-  ],
-  "hooks": "./hooks/hooks.json"
+  ]
 }
